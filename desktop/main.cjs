@@ -5,6 +5,7 @@ const {importCodex,accessToken,CODEX_URL}=require('./codex.cjs');
 const {normalizeAppearance,updateAppearance,clampPetPosition}=require('./appearance.cjs');
 const {pythonExecutable,windowChrome}=require('./platform.cjs');
 const {createModelFetch}=require('./network.cjs');
+const {agentOptions,codexModels}=require('./agent-config.cjs');
 const root=path.resolve(__dirname,'..');let petWin,petStatus='陪你读书',positionTimer,petDrag=null;let win,worker,seq=0,controller,chatBusy=false;const pending=new Map();
 // Preserve prior workspace and OS encryption identity after the display-name change.
 app.setName('UCL Study');
@@ -58,6 +59,26 @@ async function callTool(name,args={}){
  return rpc(name,args);
 }
 async function action(method,args={}){
+ if(method==='models')return {models:state.config.authMode==='codex-local'?codexModels():state.modelCatalog?.baseUrl===state.config.baseUrl?state.modelCatalog.models:[],source:state.config.authMode==='codex-local'?'本机 Codex 模型目录':'服务模型目录'};
+ if(method==='refreshModels'){
+  if(state.config.authMode==='codex-local')return action('models');
+  if(!state.config.shareData)throw Error('请先在设置中保存数据发送许可');
+  if(!state.config.baseUrl)throw Error('请先配置模型服务');
+  modelEndpoint(state.config.baseUrl);
+  const apiKey=key();const response=await createModelFetch(win.webContents.session)(state.config.baseUrl.replace(/\/$/,'')+'/models',{headers:apiKey?{Authorization:`Bearer ${apiKey}`}:{},signal:AbortSignal.timeout(15000)});
+  const body=await response.json();if(!Array.isArray(body.data))throw Error('服务未返回有效模型列表，可手动填写模型 ID');
+  const models=body.data.filter(m=>typeof m.id==='string'&&m.id.length<=200).slice(0,300).map(m=>({id:m.id,name:m.id}));
+  state.modelCatalog={baseUrl:state.config.baseUrl,models};save();return action('models');
+ }
+ if(method==='configureAgent'){
+  if(chatBusy)throw Error('请先停止当前任务，再调整助手');
+  const model=String(args.model||'').trim();if(!model||model.length>200)throw Error('模型名称需要 1–200 字');
+  const options=agentOptions(args);
+  const metadata=state.config.authMode==='codex-local'?codexModels().find(m=>m.id===model):undefined;
+  if(options.reasoning!=='auto'&&metadata?.reasoningLevels.length&&!metadata.reasoningLevels.includes(options.reasoning))throw Error('该模型不支持所选推理强度');
+  if(state.config.model!==model)delete state.agentSession;
+  state.config={...state.config,model,...options,modelContextWindow:metadata?.contextWindow||32768};save();return visibleState().config;
+ }
  if(method==='state')return visibleState();
  if(method==='setAppearance')return setAppearance(args);
  if(method==='status')return rpc('local_status');
@@ -79,7 +100,7 @@ async function action(method,args={}){
   if(imported.apiKey){if(!safeStorage.isEncryptionAvailable())throw Error('系统密钥加密不可用，未导入');fs.writeFileSync(path.join(home,'model-key'),safeStorage.encryptString(imported.apiKey),{mode:0o600})}
   else fs.rmSync(path.join(home,'model-key'),{force:true});
   const sameService=['baseUrl','protocol','authMode'].every(k=>state.config[k]===imported.config[k]);
-  state.config={...imported.config,shareData:sameService&&state.config.shareData===true};delete state.agentSession;save();return visibleState().config;
+  state.config={...agentOptions(),...imported.config,shareData:sameService&&state.config.shareData===true};delete state.agentSession;save();return visibleState().config;
  }
  if(method==='saveConfig'){
   if(chatBusy)throw Error('请先停止当前对话');
@@ -90,7 +111,7 @@ async function action(method,args={}){
   if(authMode==='codex-local'&&(state.config.authMode!=='codex-local'||baseUrl!==CODEX_URL||args.apiKey))throw Error('请使用一键接入 Codex 导入登录信息');
   if(args.apiKey){if(!safeStorage.isEncryptionAvailable())throw Error('系统密钥加密不可用，未保存 API key');fs.writeFileSync(path.join(home,'model-key'),safeStorage.encryptString(String(args.apiKey)),{mode:0o600})}
   if(args.clearKey)fs.rmSync(path.join(home,'model-key'),{force:true});
-  state.config={baseUrl,model,protocol,authMode,shareData:args.shareData===true};delete state.agentSession;save();return visibleState().config;
+  state.config={...agentOptions(state.config),baseUrl,model,protocol,authMode,shareData:args.shareData===true};delete state.agentSession;save();return visibleState().config;
  }
  if(method==='cancel'){controller?.abort();stopWorker();return true}
  if(method==='clearChat'){if(chatBusy)throw Error('请先停止当前对话');state.conversations=[];delete state.agentSession;save();return true}
@@ -115,9 +136,9 @@ async function action(method,args={}){
   if(!state.config.baseUrl||!state.config.model)throw Error('请先在设置中填写模型 API 地址和模型名称');
   if(!state.config.shareData)throw Error('请先在设置中允许将问题及相关课程资料发送到你配置的模型服务');
   const prompt=String(args.message||'').trim();if(!prompt||prompt.length>12000)throw Error('问题需要 1–12000 字');
-  chatBusy=true;petStatus='正在思考…';sendPet();controller=new AbortController();const timer=setTimeout(()=>controller?.abort(),240000);
+  chatBusy=true;petStatus='正在思考…';sendPet();controller=new AbortController();const timer=setTimeout(()=>controller?.abort(),agentOptions(state.config).timeoutSeconds*1000);
   state.conversations.push({role:'user',content:prompt});save();
-  try{const result=await runAgent({session:state.agentSession,messages:state.conversations.filter(m=>!m.error).map(m=>({role:m.role,content:m.content})),config:state.config,apiKey:state.config.authMode==='codex-local'?accessToken():key(),callTool,onEvent:emit,signal:controller.signal,fetchImpl:createModelFetch(win.webContents.session)});state.agentSession=result.session;state.conversations.push({role:'assistant',content:result.text});save();return result.text}
+  try{const result=await runAgent({session:state.agentSession,messages:state.conversations.filter(m=>!m.error).map(m=>({role:m.role,content:m.content})),config:state.config,apiKey:state.config.authMode==='codex-local'?accessToken():key(),callTool,onEvent:emit,signal:controller.signal,fetchImpl:createModelFetch(win.webContents.session)});state.agentSession=result.session;state.conversations.push({role:'assistant',content:result.text,meta:result.meta});save();return result.text}
   catch(e){const message=controller.signal.aborted?'任务已停止或超时':e.message;state.conversations.push({role:'assistant',content:message,error:true});save();throw Error(message)}
   finally{clearTimeout(timer);controller=null;chatBusy=false;petStatus='陪你读书';sendPet()}
  }

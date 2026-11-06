@@ -2,7 +2,13 @@
 
 面向 UCL 的独立桌面学习助手，基于 [Mattlo0546/moodle-mcp](https://github.com/Mattlo0546/moodle-mcp) 构建。不是 UCL 官方产品，也不声称与 jAide 有关联。
 
-## Windows 0.5.1 本地修复版
+## Windows 0.6.0 助手设置与安装包修复
+
+学习助手页支持选择模型、推理强度，以及工具权限、工具循环上限、任务超时；自定义 API 可设置最大输出 tokens。Codex 模型与推理选项来自本机模型目录，自定义服务可读取 `/models` 或手动填写模型 ID。点击“应用设置”后对下一次发送生效，重启后保留。
+
+修复 0.5.1 安装包遗漏 `partial-json` 等间接依赖的问题，增加打包依赖完整性检查。新安装包为 `dist/UCatran-0.6.0-windows-x64-setup.exe`。验收记录见 [WINDOWS-0.6.0-VALIDATION.md](WINDOWS-0.6.0-VALIDATION.md)。
+
+## Windows 0.5.1 修复记录（已由 0.6.0 替代）
 
 修复 Windows 系统代理下模型请求失败，新增「测试已保存的连接」和停止测试；明确区分导入配置与真实连接成功。同一服务重复导入保留已有数据发送许可，切换导入服务仍需重新同意。HTTP、DNS、TLS 和代理错误提供可操作提示。
 

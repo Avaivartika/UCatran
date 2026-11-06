@@ -33,3 +33,20 @@ html[data-theme=yellow]{--sun-shadow:109,94,62;--sunlight-rgb:255,247,222;--sunl
 
 /* Shared UCatran identity across both palettes. */
 .brand .logo.app-brand{width:38px;height:38px;background:none;border-radius:0;font-size:0;flex-shrink:0}.brand .logo.app-brand::before{content:none}.app-brand img{display:block;width:100%;height:100%;object-fit:contain}
+.agent-controls{padding:14px 0 18px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.agent-controls-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.agent-field{display:flex;flex-direction:column;gap:7px;min-width:130px;max-width:100%;font-size:14px;font-weight:600}
+.agent-field select,.agent-controls input{font:inherit;color:inherit;background:transparent;border:1px solid #a6b396;border-radius:8px;padding:9px 10px;max-width:100%;min-width:0}
+.agent-field select{max-width:300px}.agent-controls input[type=number]{width:140px}
+.agent-advanced{margin:12px 0}.agent-advanced summary{cursor:pointer;font-size:14px;padding:5px 0}.agent-advanced .agent-controls-row{margin-top:12px}
+.agent-controls>.hint{display:block;line-height:1.6;margin-top:10px}.agent-controls input[hidden]{display:none}
+main:has(.chat-layout){height:calc(100dvh - 36px);display:flex;flex-direction:column}
+#page:has(.chat-layout){flex:1;min-height:0}
+main:has(.chat-layout)>header,main:has(.chat-layout)>#notice,main:has(.chat-layout)>#page{width:100%}
+.chat-layout{width:100%}
+.chat-layout,.chat-layout:has(.chat-intro){height:100%;min-height:0}
+.chat-layout .messages{flex:1;min-height:80px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px}
+.chat-layout .composer{position:static;flex-shrink:0;margin-top:8px}
+.chat-layout .agent-controls{flex-shrink:0;max-height:35dvh;overflow-y:auto}
+.chat-layout .trace{max-height:100px;overflow-y:auto;flex-shrink:0}
+.chat-layout>.ghost{flex-shrink:0}

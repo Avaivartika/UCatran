@@ -1,14 +1,14 @@
 {
   "name": "ucl-study-desktop",
   "productName": "UCatran",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Independent local desktop study agent for UCL Moodle",
   "author": "Catwarrior · Futuoran",
   "private": true,
   "main": "desktop/main.cjs",
   "scripts": {
     "start": "electron .",
-    "test": "node --test tests/desktop.test.cjs tests/codex.test.cjs tests/appearance.test.cjs tests/platform.test.cjs tests/network.test.cjs",
+    "test": "node --test tests/desktop.test.cjs tests/codex.test.cjs tests/appearance.test.cjs tests/platform.test.cjs tests/network.test.cjs tests/agent-config.test.cjs",
     "setup:connector": "python3 scripts/setup_connector.py",
     "package": "electron-builder --mac dir --arm64",
     "build:flora": "esbuild renderer/flora-entry.js --bundle --format=iife --outfile=renderer/flora.bundle.js --minify",

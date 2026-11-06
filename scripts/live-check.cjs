@@ -12,6 +12,10 @@ const assert=require('node:assert/strict');
   const page=await app.firstWindow();await page.waitForFunction(()=>!!window.study);
   console.log('import',await page.evaluate(async()=>{const r=await window.study.call('importCodex');return r.ok?{ok:true,protocol:r.data.protocol,model:r.data.model}:r}));
   await page.evaluate(async()=>{const s=await window.study.call('state');return window.study.call('saveConfig',{...s.data.config,shareData:true})});
+  if(process.env.UCL_STUDY_LIVE_REASONING){
+   const configured=await page.evaluate(async reasoning=>{const s=await window.study.call('state');return window.study.call('configureAgent',{...s.data.config,reasoning})},process.env.UCL_STUDY_LIVE_REASONING);
+   assert.equal(configured.ok,true);console.log('Selected reasoning:',configured.data.reasoning);
+  }
   const result=await page.evaluate(()=>window.study.call('chat',{message:'这是连接测试，请只回答：连接成功'}));
   console.log('reply',result);
   assert.equal(result.ok,true);

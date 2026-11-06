@@ -19,7 +19,7 @@ function createModelFetch(session){
   }
   if(!response.ok){
    await response.body?.cancel();
-   const hints={400:'请求参数、模型名称或协议不兼容，请检查设置',401:'认证失败，请重新登录 Codex 或更新 API Key',403:'服务拒绝访问，请检查账户权限和网络区域',404:'服务或模型不存在，请检查 API 根地址和模型名称',407:'代理需要认证，请检查系统代理',429:'请求过多或额度不足，请检查账户额度并稍后重试'};
+   const hints={400:'模型、协议或推理强度不兼容，请检查设置；可先将推理强度设为自动',401:'认证失败，请重新登录 Codex 或更新 API Key',403:'服务拒绝访问，请检查账户权限和网络区域',404:'服务或模型不存在，请检查 API 根地址和模型名称',407:'代理需要认证，请检查系统代理',429:'请求过多或额度不足，请检查账户额度并稍后重试'};
    throw Error(`模型服务 HTTP ${response.status}：${hints[response.status]||(response.status>=500?'服务暂时不可用，请稍后重试':'请求失败，请检查服务配置')}`);
   }
   return response;

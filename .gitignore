@@ -5,6 +5,7 @@ __pycache__/
 *.pyc
 *.log
 node_modules/
+node_modules-shared/
 runtime/
 dist/
 backups/
