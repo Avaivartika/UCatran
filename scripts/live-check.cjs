@@ -25,6 +25,10 @@ const assert=require('node:assert/strict');
    fs.writeFileSync(path.join(home,'Library','中文测试资料.txt'),'测试课程：猫然学习方法。核心原则：先理解概念，再使用间隔复习，最后通过练习自测。来源编号：UCATRAN-TEST-1106。','utf8');
    const events=[];await page.exposeFunction('recordTool',e=>events.push(e));
    await page.evaluate(()=>window.study.onEvent(e=>{if(e.type==='tool')window.recordTool(e)}));
+   if(process.env.UCL_STUDY_LIVE_SEARCH==='1'){
+    const searched=await page.evaluate(()=>window.study.call('chat',{message:'请调用 search_library 全文检索工具，在本地资料中查找“间隔复习”，告诉我原文和来源编号。'}));
+    assert.equal(searched.ok,true);assert.match(searched.data,/UCATRAN-TEST-1106/);assert(events.some(e=>e.name==='search_library'&&e.status==='done'));console.log('Real model full-text search and source citation passed.');
+   }
    const summary=await page.evaluate(()=>window.study.call('chat',{message:'请使用资料库工具查找并读取“中文测试资料.txt”，总结三条核心原则并注明文件来源和来源编号。'}));
    assert.equal(summary.ok,true);assert.match(summary.data,/UCATRAN-TEST-1106/);
    assert(events.some(e=>e.name==='read_document'&&e.status==='done'));

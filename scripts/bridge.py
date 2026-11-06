@@ -12,6 +12,9 @@ if os.name != 'nt': os.chmod(s.home, 0o700)
 
 def clean(x): return BeautifulSoup(x or '', 'html.parser').get_text(' ', strip=True)
 def run(method, args):
+    if method in ('search_library','index_library'):
+        from library_index import search_library
+        return search_library(s.download_dir,s.home,args.get('query',''),args.get('rebuild',False))
     if method == 'login': return browser_login(s, timeout_s=300)
     if method == 'logout':
         s.token_path.unlink(missing_ok=True)
@@ -25,10 +28,13 @@ def run(method, args):
         if p.suffix.lower() == '.pdf':
             from pypdf import PdfReader
             reader = PdfReader(p)
-            text = '\n'.join((page.extract_text() or '') for page in reader.pages[:60])
+            requested=args.get('page')
+            if requested is not None and (not isinstance(requested,int) or requested<1 or requested>len(reader.pages)): raise ValueError('PDF 页码超出范围')
+            pages=[reader.pages[requested-1]] if requested else reader.pages[:60]
+            text = '\n'.join((page.extract_text() or '') for page in pages)
         elif p.suffix.lower() in ('.txt','.md','.csv'): text = p.read_text(encoding='utf-8-sig', errors='replace')
         else: raise ValueError('目前支持 PDF、TXT、Markdown 和 CSV 文本读取')
-        return {'file':p.name,'text':text[:60000],'limited':len(text)>60000,'note':'PDF 最多读取前 60 页；扫描件未提供 OCR'}
+        return {'file':p.name,'text':text[:60000],'limited':len(text)>60000,'page':args.get('page'),'note':'未指定页码时 PDF 最多读取前 60 页；可按检索结果指定页码；扫描件未提供 OCR'}
     mo = Moodle(s)
     try:
         if method == 'status':

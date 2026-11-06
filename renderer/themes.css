@@ -50,3 +50,16 @@ main:has(.chat-layout)>header,main:has(.chat-layout)>#notice,main:has(.chat-layo
 .chat-layout .agent-controls{flex-shrink:0;max-height:35dvh;overflow-y:auto}
 .chat-layout .trace{max-height:100px;overflow-y:auto;flex-shrink:0}
 .chat-layout>.ghost{flex-shrink:0}
+
+.chat-toolbar{flex-shrink:0;padding:0 0 12px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.chat-toolbar select{font:inherit;color:inherit;background:transparent;border:1px solid var(--line);padding:8px;border-radius:8px;max-width:200px;min-width:100px}
+.agent-settings-trigger{margin-left:auto;min-width:0}.agent-settings-trigger>button{max-width:330px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agent-dialog{color:inherit;background:var(--paper,#eef2de);border:1px solid var(--line);border-radius:16px;width:min(720px,90vw);max-height:85dvh;padding:24px;box-shadow:0 16px 70px #23332140;overflow:auto;font:inherit}
+.agent-dialog::backdrop{background:#18211666}.agent-dialog h2{flex:1;margin:0}.chat-layout .agent-dialog .agent-controls{max-height:none;margin:0;border:0;padding-bottom:0}
+.markdown{white-space:normal;line-height:1.85}.markdown p{margin:0 0 .75em}.markdown p:last-child{margin-bottom:0}.markdown pre{white-space:pre;overflow:auto;background:#2631220d;padding:14px;border-radius:8px}.markdown code{font-family:Consolas,monospace;font-size:.9em}.markdown blockquote{border-left:3px solid var(--accent);padding-left:14px;margin:12px 0;color:var(--muted)}.markdown ul,.markdown ol{padding-left:1.6em}.table-scroll{overflow:auto}.markdown table{border-collapse:collapse;width:100%;margin:12px 0}.markdown th,.markdown td{border:1px solid var(--line);padding:8px;text-align:left}
+.search-hit{padding:18px 0;border-bottom:1px solid var(--line)}.search-hit p{white-space:pre-wrap;overflow-wrap:anywhere}.library-search input{flex:1}.task-activity{flex-shrink:0;font-size:13px}.task-activity summary{cursor:pointer;padding:5px 0}
+.chat-layout .composer textarea{min-height:52px}.chat-layout .composer{padding:12px}.chat-layout .messages{scrollbar-width:thin}
+@media(max-width:900px){.agent-settings-trigger>button{max-width:230px}.chat-toolbar select{max-width:150px}}
+
+.chat-layout .composer textarea{height:64px;min-height:48px}
+body:has(.chat-layout){display:flow-root}

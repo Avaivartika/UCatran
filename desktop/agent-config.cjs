@@ -5,7 +5,7 @@ function agentOptions(input={}){
  if(!efforts.includes(reasoning))throw Error('不支持的推理强度');
  if(!['auto','read-only','off'].includes(toolMode))throw Error('不支持的工具模式');
  const number=(key,fallback,min,max)=>{const n=input[key]??fallback;if(!Number.isInteger(n)||n<min||n>max)throw Error(`${key} 必须为 ${min}–${max} 的整数`);return n};
- return {reasoning,toolMode,maxTurns:number('maxTurns',8,1,32),timeoutSeconds:number('timeoutSeconds',240,30,900),maxOutputTokens:number('maxOutputTokens',4096,256,65536)};
+ return {reasoning,toolMode,maxTurns:number('maxTurns',8,1,32),timeoutSeconds:number('timeoutSeconds',240,30,900),maxOutputTokens:number('maxOutputTokens',4096,256,65536),modelContextWindow:number('modelContextWindow',32768,4096,2000000)};
 }
 function codexModels(dir=process.env.CODEX_HOME||path.join(os.homedir(),'.codex')){
  try{

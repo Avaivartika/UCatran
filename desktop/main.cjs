@@ -23,7 +23,7 @@ function snapshotChat(){return {id:state.chatId,title:state.conversations.find(m
 function retainChat(){const chat=snapshotChat();state.savedChats=state.savedChats.filter(c=>c.id!==chat.id);if(chat.conversations.length)state.savedChats.push(chat)}
 function save(){const temp=statePath+'.tmp';fs.writeFileSync(temp,JSON.stringify(state),{mode:0o600});fs.renameSync(temp,statePath)}
 function key(){try{return safeStorage.decryptString(fs.readFileSync(path.join(home,'model-key')))}catch{return ''}}
-function visibleState(){return {appearance:state.appearance,config:{...state.config,hasKey:fs.existsSync(path.join(home,'model-key'))},todos:state.todos,conversations:state.conversations,cache:state.cache,library:files(),demo:process.env.UCL_STUDY_DEMO==='1'}}
+function visibleState(){return {chatId:state.chatId,appearance:state.appearance,config:{...state.config,hasKey:fs.existsSync(path.join(home,'model-key'))},todos:state.todos,conversations:state.conversations,cache:state.cache,library:files(),demo:process.env.UCL_STUDY_DEMO==='1'}}
 function files(dir=library){return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>{const p=path.join(dir,e.name);if(e.isSymbolicLink())return [];return e.isDirectory()?files(p):[{name:e.name,path:p,size:fs.statSync(p).size}]})}
 function petState(){return {...state.appearance,status:petStatus,busy:chatBusy}}
 function sendPet(){if(petWin&&!petWin.isDestroyed())petWin.webContents.send('pet:state',petState())}
@@ -53,14 +53,14 @@ function getWorker(){
  child.on('error',()=>{if(worker===child)stopWorker()});child.on('exit',()=>{if(worker===child)stopWorker()});return child;
 }
 function demo(method,args){const due=Math.floor(Date.now()/1000)+3*86400;const course={id:101,name:'示例 · Machine Learning',shortname:'DEMO001',url:'https://moodle.ucl.ac.uk'};if(method==='local_status'||method==='status')return {connected:true,name:'演示同学',site:'示例数据'};if(method==='courses')return [course];if(method==='deadlines')return [{id:1,name:'示例 · Coursework 1',course:course.name,timestamp:due,url:course.url}];if(method==='browse')return {course:course.name,sections:[{name:'Week 1 · 示例',items:[{name:'Introduction to learning',type:'resource',description:'示例课程资料，不是真实 UCL 内容。',url:course.url,files:[]}]}]};throw Error('演示模式不执行登录或下载');}
-function rpc(method,args={}){if(process.env.UCL_STUDY_DEMO==='1'&&!['read_document','logout'].includes(method))return Promise.resolve(demo(method,args));return new Promise((resolve,reject)=>{let child;try{child=getWorker()}catch(e){reject(e);return}const id=++seq;const timer=setTimeout(()=>{pending.delete(id);reject(Error('连接器超时，请重试'));stopWorker()},method==='login'?330000:180000);pending.set(id,{resolve,reject,timer});child.stdin.write(JSON.stringify({id,method,args})+'\n')})}
+function rpc(method,args={}){if(process.env.UCL_STUDY_DEMO==='1'&&!['read_document','search_library','index_library','logout'].includes(method))return Promise.resolve(demo(method,args));return new Promise((resolve,reject)=>{let child;try{child=getWorker()}catch(e){reject(e);return}const id=++seq;const timer=setTimeout(()=>{pending.delete(id);reject(Error('连接器超时，请重试'));stopWorker()},method==='login'?330000:180000);pending.set(id,{resolve,reject,timer});child.stdin.write(JSON.stringify({id,method,args})+'\n')})}
 const services=[{name:'UCL Moodle',description:'课程、作业、课程资料',url:'https://moodle.ucl.ac.uk'},{name:'UCL Library',description:'图书馆、文献、学习空间',url:'https://www.ucl.ac.uk/library/'},{name:'UCL Students',description:'学生支持、学业与校园事务',url:'https://www.ucl.ac.uk/students/'},{name:'UCL API',description:'学生开发者平台与校园数据接口',url:'https://uclapi.com/'}];
 async function callTool(name,args={}){
  if(name==='library')return files();
  if(name==='todos')return state.todos;
  if(name==='services'){const q=String(args.query||'').toLowerCase();return services.filter(s=>!q||(s.name+s.description).toLowerCase().includes(q))}
  if(name==='add_todo'){const title=String(args.title||'').trim();if(!title||title.length>300)throw Error('待办标题需要 1–300 字');const due=String(args.due||'');if(due&&!/^\d{4}-\d{2}-\d{2}$/.test(due))throw Error('日期格式应为 YYYY-MM-DD');const task={id:crypto.randomUUID(),title,due,done:false};state.todos.push(task);save();emit({type:'workspace'});return task}
- if(!['courses','deadlines','browse','read_document'].includes(name))throw Error('工具未授权');
+ if(!['courses','deadlines','browse','read_document','search_library'].includes(name))throw Error('工具未授权');
  return rpc(name,args);
 }
 async function action(method,args={}){
@@ -90,7 +90,7 @@ async function action(method,args={}){
   const metadata=state.config.authMode==='codex-local'?codexModels().find(m=>m.id===model):undefined;
   if(options.reasoning!=='auto'&&metadata?.reasoningLevels.length&&!metadata.reasoningLevels.includes(options.reasoning))throw Error('该模型不支持所选推理强度');
   if(state.config.model!==model)delete state.agentSession;
-  state.config={...state.config,model,...options,modelContextWindow:metadata?.contextWindow||32768};save();return visibleState().config;
+  state.config={...state.config,model,...options,modelContextWindow:metadata?.contextWindow||options.modelContextWindow};save();return visibleState().config;
  }
  if(method==='state')return visibleState();
  if(method==='setAppearance')return setAppearance(args);
@@ -103,6 +103,7 @@ async function action(method,args={}){
  if(method==='import'){const r=await dialog.showOpenDialog(win,{properties:['openFile','multiSelections'],filters:[{name:'学习资料',extensions:['pdf','txt','md','csv']}]});if(r.canceled)return [];for(const f of r.filePaths){let name=path.basename(f),dest=path.join(library,name);if(fs.existsSync(dest))dest=path.join(library,Date.now()+'-'+name);fs.copyFileSync(f,dest,fs.constants.COPYFILE_EXCL)}return files()}
  if(method==='openFile'){const p=fs.realpathSync(String(args.path));if(!inside(library,p))throw Error('仅能打开资料库文件');shell.showItemInFolder(p);return true}
  if(method==='openLink'){await shell.openExternal(safeLink(String(args.url)));return true}
+ if(method==='searchLibrary')return rpc('search_library',{query:String(args.query||''),rebuild:args.rebuild===true});
  if(method==='services')return services;
  if(method==='addTodo')return callTool('add_todo',args);
  if(method==='toggleTodo'){const t=state.todos.find(x=>x.id===args.id);if(t)t.done=!t.done;save();return state.todos}

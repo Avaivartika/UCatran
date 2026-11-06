@@ -2,6 +2,10 @@
 
 面向 UCL 的独立桌面学习助手，基于 [Mattlo0546/moodle-mcp](https://github.com/Mattlo0546/moodle-mcp) 构建。不是 UCL 官方产品，也不声称与 jAide 有关联。
 
+## Windows 0.8.0 完整学习工作区升级
+
+整合自动上下文压缩、本地资料全文检索和 Agent 检索工具；模型配置改为按需打开的面板，消息区获得更多空间，回答支持安全的 Markdown 排版。保留托盘、历史会话、检查点、模型和推理强度设置。安装包为 `dist/UCatran-0.8.0-windows-x64-setup.exe`，便携版为 `dist/UCatran-0.8.0-win-x64.zip`。功能边界及测试证据见 [0.8.0 验收记录](WINDOWS-0.8.0-VALIDATION.md)。
+
 ## Windows 0.7.0 托盘与会话可靠性
 
 关闭窗口后在托盘继续运行，点击托盘恢复，右键停止任务或退出；重复启动唤起原窗口。学习助手支持新建与恢复历史对话，工具执行后保存检查点。安装包为 `dist/UCatran-0.7.0-windows-x64-setup.exe`。详见 [验收记录](WINDOWS-0.7.0-VALIDATION.md)。

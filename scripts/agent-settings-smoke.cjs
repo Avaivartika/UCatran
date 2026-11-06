@@ -13,7 +13,7 @@ const {sse}=require('../tests/pi-response.cjs');
  try{
   let page=await app.firstWindow();await page.waitForFunction(()=>!!window.study);
   await page.evaluate(port=>window.study.call('saveConfig',{baseUrl:`http://127.0.0.1:${port}/v1`,model:'model-a',shareData:true}),server.address().port);
-  await page.locator('nav button[data-view="chat"]').click();await page.getByRole('button',{name:'刷新模型目录',exact:true}).click();
+  await page.locator('nav button[data-view="chat"]').click();await page.getByRole('button',{name:'打开助手设置'}).click();await page.getByRole('button',{name:'刷新模型目录',exact:true}).click();
   await page.locator('#chat-model option[value="model-b"]').waitFor({state:'attached'});
   await page.locator('#chat-model').selectOption('model-b');await page.locator('#chat-reasoning').selectOption('high');
   await page.getByText('更多运行设置',{exact:true}).click();
