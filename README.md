@@ -2,7 +2,13 @@
 
 面向 UCL 的独立桌面学习助手，基于 [Mattlo0546/moodle-mcp](https://github.com/Mattlo0546/moodle-mcp) 构建。不是 UCL 官方产品，也不声称与 jAide 有关联。
 
-## 安装（0.5.0）
+## Windows 0.5.1 本地修复版
+
+修复 Windows 系统代理下模型请求失败，新增「测试已保存的连接」和停止测试；明确区分导入配置与真实连接成功。同一服务重复导入保留已有数据发送许可，切换导入服务仍需重新同意。HTTP、DNS、TLS 和代理错误提供可操作提示。
+
+安装包构建到 `dist/UCatran-0.5.1-windows-x64-setup.exe`。本次没有发布 GitHub Release，也没有构建新的 macOS 安装包。修复和实测记录见 [WINDOWS-0.5.1-VALIDATION.md](WINDOWS-0.5.1-VALIDATION.md)。
+
+## 已发布安装包（0.5.0）
 
 - **Windows 10/11 x64**：下载 `UCatran-0.5.0-windows-x64-setup.exe`，按向导安装；ZIP 版解压后运行 UCatran.exe。
 - **macOS Apple Silicon**：下载 `UCatran-0.5.0-mac-arm64.dmg`，将应用拖入 Applications。
