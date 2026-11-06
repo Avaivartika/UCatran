@@ -8,6 +8,7 @@ const {createModelFetch}=require('./network.cjs');
 const {agentOptions,codexModels}=require('./agent-config.cjs');
 const {installLifecycle}=require('./lifecycle.cjs');let lifecycle;
 const windowsAppId='local.uclstudy.desktop';
+const brandIcon=path.join(__dirname,'../renderer/assets/brand/ucatran.png');
 const root=path.resolve(__dirname,'..');let petWin,petStatus='陪你读书',positionTimer,petDrag=null;let win,worker,seq=0,controller,chatBusy=false;const pending=new Map();
 // Preserve prior workspace and OS encryption identity after the display-name change.
 app.setName('UCL Study');
@@ -34,9 +35,9 @@ function syncPet(){
  if(petWin&&!petWin.isDestroyed()){sendPet();return}
  const saved=state.petPosition;const display=saved&&Number.isFinite(saved.x)&&Number.isFinite(saved.y)?screen.getDisplayNearestPoint({x:Math.round(saved.x),y:Math.round(saved.y)}):screen.getPrimaryDisplay();
  const position=clampPetPosition(saved,display.workArea);
- const pet=new BrowserWindow({width:210,height:250,...position,frame:false,transparent:true,resizable:false,maximizable:false,minimizable:false,alwaysOnTop:true,skipTaskbar:true,show:false,hasShadow:false,title:'UCatran 桌宠',webPreferences:{preload:path.join(__dirname,'pet-preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+ const pet=new BrowserWindow({width:210,height:250,...position,frame:false,transparent:true,resizable:false,maximizable:false,minimizable:false,alwaysOnTop:true,skipTaskbar:true,show:false,hasShadow:false,icon:brandIcon,title:'UCatran 桌宠',webPreferences:{preload:path.join(__dirname,'pet-preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
  petWin=pet;pet.webContents.setWindowOpenHandler(()=>({action:'deny'}));pet.webContents.on('will-navigate',e=>e.preventDefault());
- pet.once('ready-to-show',()=>{if(!pet.isDestroyed())pet.showInactive()});
+ pet.once('ready-to-show',()=>{if(!pet.isDestroyed()){pet.showInactive();if(process.platform==='win32')pet.setSkipTaskbar(true)}});
  pet.on('move',()=>{clearTimeout(positionTimer);positionTimer=setTimeout(()=>{if(!pet.isDestroyed()){const [x,y]=pet.getPosition();state.petPosition={x,y};save()}},250)});
  pet.on('closed',()=>{petDrag=null;clearTimeout(positionTimer);if(petWin===pet)petWin=null});
  pet.loadFile(path.join(root,'renderer/pet.html'));
@@ -165,7 +166,7 @@ app.whenReady().then(()=>{
  if(process.platform==='win32')app.setAppUserModelId(app.isPackaged?windowsAppId:`${windowsAppId}.development`);
  app.setAboutPanelOptions({applicationName:'UCatran · 猫然',applicationVersion:app.getVersion(),copyright:'Catwarrior · Futuoran'});
  Menu.setApplicationMenu(Menu.buildFromTemplate([{label:'UCatran',submenu:[{role:'about',label:'关于 UCatran'},{type:'separator'},...(process.platform==='darwin'?[{role:'hide',label:'隐藏 UCatran'},{role:'hideOthers'},{role:'unhide'}]:[]),{type:'separator'},{role:'quit',label:'退出 UCatran'}]},{role:'editMenu'},{role:'viewMenu'},{role:'windowMenu'}]));
- win=new BrowserWindow({width:1280,height:850,minWidth:800,minHeight:600,title:'UCatran',backgroundColor:'#f4f6f8',...windowChrome(),icon:path.join(root,'renderer/assets/brand/ucatran.png'),webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+ win=new BrowserWindow({width:1280,height:850,minWidth:800,minHeight:600,title:'UCatran',backgroundColor:'#f4f6f8',...windowChrome(),icon:brandIcon,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
  if(process.platform==='win32'&&app.isPackaged){
   win.setAppDetails({appId:windowsAppId,appIconPath:process.execPath,relaunchCommand:`"${process.execPath}"`,relaunchDisplayName:'UCatran · 猫然'});
  }
