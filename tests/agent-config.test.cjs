@@ -29,3 +29,8 @@ test('configured tool loop budget stops repeated model tool requests',async()=>{
  await assert.rejects(runAgent({messages:[{role:'user',content:'test'}],config:{baseUrl:'https://example.com/v1',model:'selected',maxTurns:1},callTool:()=>{calls++;return []},fetchImpl:async()=>new Response(sse({tool_calls:[{id:'loop',type:'function',function:{name:'todos',arguments:'{}'}}]}))}),/1 轮/);
  assert.equal(calls,1);
 });
+test('failed model follow-up retains completed tool results and a checkpoint',async()=>{
+ let n=0,checkpoint;
+ await assert.rejects(runAgent({messages:[{role:'user',content:'test'}],config:{baseUrl:'https://example.com/v1',model:'selected'},callTool:()=>({id:'saved-todo'}),onCheckpoint:s=>{checkpoint=s},fetchImpl:async()=>{if(n++)throw Error('network interrupted');return new Response(sse({tool_calls:[{id:'save',type:'function',function:{name:'add_todo',arguments:'{"title":"test","due":""}'}}]}))}}),error=>{assert(error.session.messages.some(m=>m.role==='toolResult'));return true});
+ assert(checkpoint.messages.some(m=>m.role==='toolResult'));
+});

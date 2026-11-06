@@ -1,4 +1,10 @@
 let modelCatalog=[];
+function chatSessions(){
+ const row=el('div','row'),select=el('select');select.setAttribute('aria-label','历史对话');select.disabled=busy;
+ api('chats').then(chats=>{for(const chat of chats){const option=el('option','',chat.title);option.value=chat.id;option.selected=chat.current;select.append(option)}}).catch(e=>notice(e.message));
+ select.onchange=async()=>{try{await api('switchChat',{id:select.value});trace=[];streamText='';await load();render()}catch(e){notice(e.message)}};
+ const create=btn('新对话',async()=>{await api('newChat');trace=[];streamText='';await load();render()},'small');create.disabled=busy;row.append(select,create,el('small','hint','关闭窗口后继续在系统托盘运行'));return row;
+}
 const effortNames={auto:'自动（服务默认）',none:'不推理',minimal:'极低',low:'低',medium:'中',high:'高',xhigh:'很高',max:'最大',ultra:'Ultra'};
 function agentControls(){
  const form=el('form','agent-controls');form.setAttribute('aria-label','助手运行设置');

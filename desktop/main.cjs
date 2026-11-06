@@ -6,16 +6,21 @@ const {normalizeAppearance,updateAppearance,clampPetPosition}=require('./appeara
 const {pythonExecutable,windowChrome}=require('./platform.cjs');
 const {createModelFetch}=require('./network.cjs');
 const {agentOptions,codexModels}=require('./agent-config.cjs');
+const {installLifecycle}=require('./lifecycle.cjs');let lifecycle;
 const root=path.resolve(__dirname,'..');let petWin,petStatus='陪你读书',positionTimer,petDrag=null;let win,worker,seq=0,controller,chatBusy=false;const pending=new Map();
 // Preserve prior workspace and OS encryption identity after the display-name change.
 app.setName('UCL Study');
 app.setPath('userData',process.env.UCL_STUDY_TEST_HOME||path.join(app.getPath('appData'),'UCL Study'));
+const primary=app.requestSingleInstanceLock();if(!primary)app.quit();
 const home=app.getPath('userData'), library=path.join(home,'Library'), connectorHome=path.join(home,'Moodle');
 for(const p of [home,library,connectorHome])fs.mkdirSync(p,{recursive:true,mode:0o700});
 const statePath=path.join(home,'workspace.json');
 let state={config:{baseUrl:'',model:'',shareData:false},todos:[],conversations:[],cache:{},notified:[]};
 try{state={...state,...JSON.parse(fs.readFileSync(statePath,'utf8'))}}catch{}
 state.appearance=normalizeAppearance(state.appearance);
+state.chatId ||= crypto.randomUUID();state.savedChats ||= [];
+function snapshotChat(){return {id:state.chatId,title:state.conversations.find(m=>m.role==='user')?.content.slice(0,40)||'新对话',conversations:state.conversations,agentSession:state.agentSession,model:state.config.model,protocol:state.config.protocol,baseUrl:state.config.baseUrl,updatedAt:Date.now()}}
+function retainChat(){const chat=snapshotChat();state.savedChats=state.savedChats.filter(c=>c.id!==chat.id);if(chat.conversations.length)state.savedChats.push(chat)}
 function save(){const temp=statePath+'.tmp';fs.writeFileSync(temp,JSON.stringify(state),{mode:0o600});fs.renameSync(temp,statePath)}
 function key(){try{return safeStorage.decryptString(fs.readFileSync(path.join(home,'model-key')))}catch{return ''}}
 function visibleState(){return {appearance:state.appearance,config:{...state.config,hasKey:fs.existsSync(path.join(home,'model-key'))},todos:state.todos,conversations:state.conversations,cache:state.cache,library:files(),demo:process.env.UCL_STUDY_DEMO==='1'}}
@@ -59,6 +64,14 @@ async function callTool(name,args={}){
  return rpc(name,args);
 }
 async function action(method,args={}){
+ if(method==='chats')return [...state.savedChats.filter(c=>c.id!==state.chatId),snapshotChat()].map(({id,title,updatedAt})=>({id,title,updatedAt,current:id===state.chatId})).sort((a,b)=>b.updatedAt-a.updatedAt);
+ if(method==='newChat'||method==='switchChat'){
+  if(chatBusy)throw Error('请先停止当前任务，再切换对话');
+  const selected=method==='switchChat'?state.savedChats.find(c=>c.id===args.id):null;
+  if(method==='switchChat'&&args.id===state.chatId)return true;
+  if(method==='switchChat'&&!selected)throw Error('对话不存在');
+  retainChat();state.chatId=selected?.id||crypto.randomUUID();state.conversations=selected?.conversations||[];state.agentSession=selected&&['model','protocol','baseUrl'].every(k=>selected[k]===state.config[k])?selected.agentSession:undefined;save();return true;
+ }
  if(method==='models')return {models:state.config.authMode==='codex-local'?codexModels():state.modelCatalog?.baseUrl===state.config.baseUrl?state.modelCatalog.models:[],source:state.config.authMode==='codex-local'?'本机 Codex 模型目录':'服务模型目录'};
  if(method==='refreshModels'){
   if(state.config.authMode==='codex-local')return action('models');
@@ -138,13 +151,14 @@ async function action(method,args={}){
   const prompt=String(args.message||'').trim();if(!prompt||prompt.length>12000)throw Error('问题需要 1–12000 字');
   chatBusy=true;petStatus='正在思考…';sendPet();controller=new AbortController();const timer=setTimeout(()=>controller?.abort(),agentOptions(state.config).timeoutSeconds*1000);
   state.conversations.push({role:'user',content:prompt});save();
-  try{const result=await runAgent({session:state.agentSession,messages:state.conversations.filter(m=>!m.error).map(m=>({role:m.role,content:m.content})),config:state.config,apiKey:state.config.authMode==='codex-local'?accessToken():key(),callTool,onEvent:emit,signal:controller.signal,fetchImpl:createModelFetch(win.webContents.session)});state.agentSession=result.session;state.conversations.push({role:'assistant',content:result.text,meta:result.meta});save();return result.text}
-  catch(e){const message=controller.signal.aborted?'任务已停止或超时':e.message;state.conversations.push({role:'assistant',content:message,error:true});save();throw Error(message)}
-  finally{clearTimeout(timer);controller=null;chatBusy=false;petStatus='陪你读书';sendPet()}
+  try{const result=await runAgent({session:state.agentSession,messages:state.conversations.filter(m=>!m.error).map(m=>({role:m.role,content:m.content})),config:state.config,apiKey:state.config.authMode==='codex-local'?accessToken():key(),callTool,onCheckpoint:session=>{state.agentSession=session;save()},onEvent:emit,signal:controller.signal,fetchImpl:createModelFetch(win.webContents.session)});state.agentSession=result.session;state.conversations.push({role:'assistant',content:result.text,meta:result.meta});save();return result.text}
+  catch(e){if(e.session)state.agentSession=e.session;const message=controller.signal.aborted?'任务已停止或超时':e.message;state.conversations.push({role:'assistant',content:message,error:true});save();throw Error(message)}
+  finally{clearTimeout(timer);controller=null;chatBusy=false;petStatus='陪你读书';sendPet();lifecycle?.notify()}
  }
  throw Error('未知操作');
 }
 app.whenReady().then(()=>{
+ if(!primary)return;
  if(process.platform==='darwin')app.dock.setIcon(path.join(__dirname,'../renderer/assets/brand/ucatran.png'));
  if(process.platform==='win32')app.setAppUserModelId('local.uclstudy.desktop');
  app.setAboutPanelOptions({applicationName:'UCatran · 猫然',applicationVersion:app.getVersion(),copyright:'Catwarrior · Futuoran'});
@@ -176,6 +190,7 @@ app.whenReady().then(()=>{
   throw Error('未知桌宠操作');
  });
  win.loadFile(path.join(root,'renderer/index.html'));
+ lifecycle=installLifecycle({app,window:win,icon:path.join(root,'renderer/assets/brand/ucatran.png'),onQuit:()=>{controller?.abort();stopWorker();save()},onStop:()=>{controller?.abort();stopWorker()},isBusy:()=>chatBusy});
  win.on('closed',()=>{win=null;if(petWin&&!petWin.isDestroyed())petWin.close()});
  syncPet();
  // Reminders apply only to explicit local tasks, while this app is running.

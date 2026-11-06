@@ -2,6 +2,10 @@
 
 面向 UCL 的独立桌面学习助手，基于 [Mattlo0546/moodle-mcp](https://github.com/Mattlo0546/moodle-mcp) 构建。不是 UCL 官方产品，也不声称与 jAide 有关联。
 
+## Windows 0.7.0 托盘与会话可靠性
+
+关闭窗口后在托盘继续运行，点击托盘恢复，右键停止任务或退出；重复启动唤起原窗口。学习助手支持新建与恢复历史对话，工具执行后保存检查点。安装包为 `dist/UCatran-0.7.0-windows-x64-setup.exe`。详见 [验收记录](WINDOWS-0.7.0-VALIDATION.md)。
+
 ## Windows 0.6.0 助手设置与安装包修复
 
 学习助手页支持选择模型、推理强度，以及工具权限、工具循环上限、任务超时；自定义 API 可设置最大输出 tokens。Codex 模型与推理选项来自本机模型目录，自定义服务可读取 `/models` 或手动填写模型 ID。点击“应用设置”后对下一次发送生效，重启后保留。
