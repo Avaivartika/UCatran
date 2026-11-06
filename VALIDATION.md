@@ -44,3 +44,10 @@ school service permissions. External production model services were not tested.
 Windows executables are not Authenticode-signed. macOS is ad-hoc signed, not
 Apple Developer ID signed or notarized; a changed build may request Keychain
 access again. No Intel Mac or Windows ARM release is included.
+
+## GitHub-hosted CI
+
+The initial Actions run could not start either job: GitHub reported that the
+owner account was locked due to a billing issue. No CI test or build ran there.
+The release artifacts were built and validated on the actual Mac and Windows
+machines described above; they are not claimed to be GitHub Actions outputs.
