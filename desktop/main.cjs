@@ -7,6 +7,7 @@ const {pythonExecutable,windowChrome}=require('./platform.cjs');
 const {createModelFetch}=require('./network.cjs');
 const {agentOptions,codexModels}=require('./agent-config.cjs');
 const {installLifecycle}=require('./lifecycle.cjs');let lifecycle;
+const windowsAppId='local.uclstudy.desktop';
 const root=path.resolve(__dirname,'..');let petWin,petStatus='陪你读书',positionTimer,petDrag=null;let win,worker,seq=0,controller,chatBusy=false;const pending=new Map();
 // Preserve prior workspace and OS encryption identity after the display-name change.
 app.setName('UCL Study');
@@ -161,10 +162,13 @@ async function action(method,args={}){
 app.whenReady().then(()=>{
  if(!primary)return;
  if(process.platform==='darwin')app.dock.setIcon(path.join(__dirname,'../renderer/assets/brand/ucatran.png'));
- if(process.platform==='win32')app.setAppUserModelId('local.uclstudy.desktop');
+ if(process.platform==='win32')app.setAppUserModelId(app.isPackaged?windowsAppId:`${windowsAppId}.development`);
  app.setAboutPanelOptions({applicationName:'UCatran · 猫然',applicationVersion:app.getVersion(),copyright:'Catwarrior · Futuoran'});
  Menu.setApplicationMenu(Menu.buildFromTemplate([{label:'UCatran',submenu:[{role:'about',label:'关于 UCatran'},{type:'separator'},...(process.platform==='darwin'?[{role:'hide',label:'隐藏 UCatran'},{role:'hideOthers'},{role:'unhide'}]:[]),{type:'separator'},{role:'quit',label:'退出 UCatran'}]},{role:'editMenu'},{role:'viewMenu'},{role:'windowMenu'}]));
  win=new BrowserWindow({width:1280,height:850,minWidth:800,minHeight:600,title:'UCatran',backgroundColor:'#f4f6f8',...windowChrome(),icon:path.join(root,'renderer/assets/brand/ucatran.png'),webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+ if(process.platform==='win32'&&app.isPackaged){
+  win.setAppDetails({appId:windowsAppId,appIconPath:process.execPath,relaunchCommand:`"${process.execPath}"`,relaunchDisplayName:'UCatran · 猫然'});
+ }
  win.webContents.setWindowOpenHandler(()=>({action:'deny'}));win.webContents.on('will-navigate',e=>e.preventDefault());win.webContents.session.setPermissionRequestHandler((_w,_p,cb)=>cb(false));
  ipcMain.handle('app:action',async(event,method,args)=>{if(event.sender!==win.webContents||event.senderFrame!==win.webContents.mainFrame)throw Error('请求来源无效');try{return {ok:true,data:await action(method,args)}}catch(e){return {ok:false,error:e.message}}});
  ipcMain.handle('pet:action',async(event,method,args)=>{
