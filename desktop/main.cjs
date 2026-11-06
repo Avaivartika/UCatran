@@ -97,7 +97,7 @@ async function action(method,args={}){
  if(method==='status')return rpc('local_status');
  if(method==='login'){const r=await rpc('login');if(!r.ok)throw Error('未完成登录。学校可能未开启移动服务，或登录已超时。');return r}
  if(method==='logout'){stopWorker();await rpc('logout');state.cache={};save();return {ok:true}}
- if(method==='refresh'){const result=await Promise.allSettled([rpc('courses'),rpc('deadlines')]);const errors=[];result.forEach((r,i)=>{const k=i?'deadlines':'courses';if(r.status==='fulfilled')state.cache[k]={data:r.value,at:Date.now()};else errors.push(r.reason.message)});save();return {...visibleState(),errors}}
+ if(method==='refresh'){const result=await Promise.allSettled([rpc('courses'),rpc('deadlines')]);const errors=[];result.forEach((r,i)=>{const k=i?'deadlines':'courses';if(r.status==='fulfilled')state.cache[k]={data:r.value,at:Date.now()};else errors.push(r.reason.message)});save();return {...visibleState(),errors:[...new Set(errors)]}}
  if(method==='browse')return rpc('browse',{course:String(args.course)});
  if(method==='download'){const r=await rpc('download',{url:String(args.url),name:String(args.name)});return r}
  if(method==='import'){const r=await dialog.showOpenDialog(win,{properties:['openFile','multiSelections'],filters:[{name:'学习资料',extensions:['pdf','txt','md','csv']}]});if(r.canceled)return [];for(const f of r.filePaths){let name=path.basename(f),dest=path.join(library,name);if(fs.existsSync(dest))dest=path.join(library,Date.now()+'-'+name);fs.copyFileSync(f,dest,fs.constants.COPYFILE_EXCL)}return files()}
@@ -150,10 +150,10 @@ async function action(method,args={}){
   if(!state.config.baseUrl||!state.config.model)throw Error('请先在设置中填写模型 API 地址和模型名称');
   if(!state.config.shareData)throw Error('请先在设置中允许将问题及相关课程资料发送到你配置的模型服务');
   const prompt=String(args.message||'').trim();if(!prompt||prompt.length>12000)throw Error('问题需要 1–12000 字');
-  chatBusy=true;petStatus='正在思考…';sendPet();controller=new AbortController();const timer=setTimeout(()=>controller?.abort(),agentOptions(state.config).timeoutSeconds*1000);
+  chatBusy=true;petStatus='正在思考…';sendPet();controller=new AbortController();let partialText='',timedOut=false;const timer=setTimeout(()=>{timedOut=true;controller?.abort()},agentOptions(state.config).timeoutSeconds*1000);
   state.conversations.push({role:'user',content:prompt});save();
-  try{const result=await runAgent({session:state.agentSession,messages:state.conversations.filter(m=>!m.error).map(m=>({role:m.role,content:m.content})),config:state.config,apiKey:state.config.authMode==='codex-local'?accessToken():key(),callTool,onCheckpoint:session=>{state.agentSession=session;save()},onEvent:emit,signal:controller.signal,fetchImpl:createModelFetch(win.webContents.session)});state.agentSession=result.session;state.conversations.push({role:'assistant',content:result.text,meta:result.meta});save();return result.text}
-  catch(e){if(e.session)state.agentSession=e.session;const message=controller.signal.aborted?'任务已停止或超时':e.message;state.conversations.push({role:'assistant',content:message,error:true});save();throw Error(message)}
+  try{const result=await runAgent({session:state.agentSession,messages:state.conversations.filter(m=>!m.error).map(m=>({role:m.role,content:m.content})),config:state.config,apiKey:state.config.authMode==='codex-local'?accessToken():key(),callTool,onCheckpoint:session=>{state.agentSession=session;save()},onEvent:event=>{if(event.type==='delta')partialText+=event.text;emit(event)},signal:controller.signal,fetchImpl:createModelFetch(win.webContents.session)});state.agentSession=result.session;state.conversations.push({role:'assistant',content:result.text,meta:result.meta});save();return result.text}
+  catch(e){if(e.session)state.agentSession=e.session;const message=controller.signal.aborted?(timedOut?'任务已超时，请调整任务超时设置或缩小范围':'任务已停止'):e.message;state.conversations.push({role:'assistant',content:partialText?partialText+'\n\n—— '+message:message,error:true});save();throw Error(message)}
   finally{clearTimeout(timer);controller=null;chatBusy=false;petStatus='陪你读书';sendPet();lifecycle?.notify()}
  }
  throw Error('未知操作');

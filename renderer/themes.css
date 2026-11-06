@@ -63,3 +63,7 @@ main:has(.chat-layout)>header,main:has(.chat-layout)>#notice,main:has(.chat-layo
 
 .chat-layout .composer textarea{height:64px;min-height:48px}
 body:has(.chat-layout){display:flow-root}
+
+.composer-footer .primary{margin-left:auto}
+
+#notice:not(:empty){position:sticky;top:45px;z-index:15}

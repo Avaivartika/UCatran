@@ -11,6 +11,8 @@ class LibraryIndexTests(unittest.TestCase):
             found=search_library(root,home,'复习')
             self.assertEqual(found['documents'],1);self.assertEqual(found['results'][0]['file'],'中文资料.txt')
             self.assertIn('间隔',found['results'][0]['excerpt']);self.assertTrue(search_library(root,home,'100%')['results'])
+            self.assertTrue(search_library(root,home,'中文资料')['results'])
+            self.assertTrue(search_library(root,home,'中文资料 间隔')['results'])
             self.assertFalse(search_library(root,home,'不存在')['results'])
             source.write_text('新的测试内容',encoding='utf8');self.assertFalse(search_library(root,home,'复习')['results'])
             self.assertTrue(search_library(root,home,'新')['results']);source.unlink();self.assertEqual(search_library(root,home,'新')['documents'],0)

@@ -18,6 +18,7 @@ def search_library(root, home, query='', rebuild=False):
     query = str(query).strip()
     if len(query) > 200: raise ValueError('检索词最多 200 字')
     db = sqlite3.connect(home/'library-index.sqlite')
+    db.create_function('filename', 1, lambda value: Path(value).name, deterministic=True)
     warnings=[]; seen=set()
     try:
         db.execute('CREATE TABLE IF NOT EXISTS documents(path TEXT PRIMARY KEY, digest TEXT)')
@@ -57,8 +58,11 @@ def search_library(root, home, query='', rebuild=False):
             # LIKE is accelerated by the trigram index for >=3 characters and
             # still supports one/two-character Chinese terms without tokenizer loss.
             escaped=[t.replace('\\','\\\\').replace('%','\\%').replace('_','\\_') for t in terms]
-            where=' AND '.join("body LIKE ? ESCAPE '\\'" for _ in escaped)
-            rows=db.execute('SELECT path,page,part,body FROM passages WHERE '+where+' LIMIT 100',tuple('%'+t+'%' for t in escaped)).fetchall()
+            # Keep the body trigram lookup indexable, and union filename matches
+            # so an agent can locate a document by the user's supplied name.
+            where=' AND '.join("rowid IN (SELECT rowid FROM passages WHERE body LIKE ? ESCAPE '\\' UNION SELECT rowid FROM passages WHERE filename(path) LIKE ? ESCAPE '\\')" for _ in escaped)
+            params=tuple('%'+term+'%' for term in escaped for _ in range(2))
+            rows=db.execute('SELECT path,page,part,body FROM passages WHERE '+where+' LIMIT 100',params).fetchall()
             for key,page,part,body in rows:
                 pos=min((body.casefold().find(t) for t in terms if t in body.casefold()),default=0)
                 results.append({'path':key,'file':Path(key).name,'page':page,'part':part,'excerpt':body[max(0,pos-100):pos+500],'score':sum(body.casefold().count(t) for t in terms)})
