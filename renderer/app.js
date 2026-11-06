@@ -20,11 +20,32 @@ async function go(v){view=v;currentCourse=null;notice();await load();render()}
 function render(){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));$('#title').textContent=names[view];page.replaceChildren();({home,chat,courses,deadlines,library,todos,services,settings}[view])()}
 for(const [v,title] of Object.entries(names)){const b=btn('',()=>go(v));b.dataset.view=v;b.append(el('span','',icons[v]),el('span','label',title));$('#nav').append(b)}
 $('#refresh').onclick=async()=>{const b=$('#refresh');b.disabled=true;try{await refresh()}catch(e){notice(e.message)}finally{b.disabled=false}};
+const homeVerses=[
+ '阳光翻过窗沿，\n在书页间停了一会儿。',
+ '风从草地经过，\n把午后轻轻翻了一页。',
+ '树影落在窗边，\n一行字慢慢亮起来。',
+ '云走得很慢，\n铅笔在纸上追它。',
+ '雨歇在屋檐，\n书里还留着一小片晴。',
+ '日光挪过桌角，\n书签停在昨天的风里。'
+];
+const verseInterval=5*60*1000;
+function updateHomeVerse(){
+ const verse=$('#home-verse');
+ if(verse)verse.textContent=homeVerses[Math.floor(Date.now()/verseInterval)%homeVerses.length];
+}
+let verseTimer;
+function scheduleHomeVerse(){
+ clearTimeout(verseTimer);
+ updateHomeVerse();
+ verseTimer=setTimeout(scheduleHomeVerse,verseInterval-Date.now()%verseInterval);
+}
+scheduleHomeVerse();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)scheduleHomeVerse()});
 function home(){
  const hero=el('section','hero'),copy=el('div','hero-copy');
- copy.append(el('h2','','阳光翻过窗沿，\n在书页间停了一会儿。'));
+ const verse=el('h2','','');verse.id='home-verse';copy.append(verse);
  const r=el('div','row');r.append(btn('制定学习计划',()=>{go('chat').then(()=>{$('#prompt').value='根据我的课程、截止日期和待办，帮我规划未来一周的学习。'})},'primary'),btn('连接 UCL Moodle',login));copy.append(r);
- hero.append(copy);page.append(hero);
+ hero.append(copy);page.append(hero);updateHomeVerse();
  const stats=el('div','grid');for(const [label,num,sub] of [['我的课程',state.cache.courses?.data.length??'—','YOUR COURSES'],['未来截止事项',state.cache.deadlines?.data.length??'—','UPCOMING'],['学习待办',state.todos.filter(x=>!x.done).length,'TO DO']]){const n=el('div','stats');n.append(el('span','muted',label),el('strong','',typeof num==='number'?String(num).padStart(2,'0'):num),el('small','',sub));stats.append(n)}page.append(stats);
  const chapter=el('div','chapter');chapter.append(el('span','','/ 近期安排'),el('span','',''));page.append(chapter);
  const cols=el('div','columns'),due=panel('截止事项'),tasks=panel('待办事项');const ds=state.cache.deadlines?.data||[];if(!ds.length)due.append(empty('暂无截止事项','连接 Moodle 后，在这里查看截止日期。'));else ds.slice(0,4).forEach(d=>due.append(deadlineRow(d)));if(!state.todos.length)tasks.append(empty('暂无待办','添加任务后，可在这里查看进度。'));else state.todos.slice(0,4).forEach(t=>tasks.append(taskRow(t)));tasks.append(btn('管理学习待办 →',()=>go('todos'),'ghost'));cols.append(due,tasks);page.append(cols);const footer=el('div','home-footer');footer.append(el('span','','UCATRAN / PERSONAL WORKSPACE'),el('span','',''));page.append(footer);
