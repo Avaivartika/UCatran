@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="700" viewBox="0 0 700 700">
+<filter id="relief" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+<feTurbulence type="fractalNoise" baseFrequency=".032 .045" numOctaves="4" seed="31" stitchTiles="stitch" result="relief"/>
+<feDiffuseLighting in="relief" surfaceScale="4" diffuseConstant="1" lighting-color="#ffffff" result="light"><feDistantLight azimuth="225" elevation="42"/></feDiffuseLighting>
+<feComponentTransfer><feFuncR type="linear" slope="1.8" intercept="-.6"/><feFuncG type="linear" slope="1.8" intercept="-.6"/><feFuncB type="linear" slope="1.8" intercept="-.6"/><feFuncA type="linear" slope=".24"/></feComponentTransfer>
+</filter><path fill="#808080" filter="url(#relief)" d="M0 0h700v700H0z"/>
+</svg>

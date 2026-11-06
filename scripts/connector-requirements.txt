@@ -1,0 +1,5 @@
+# Connector source is bundled separately; pin runtime dependencies for release builds.
+httpx==0.28.1
+beautifulsoup4==4.14.3
+playwright==1.64.1
+pypdf==6.21.4

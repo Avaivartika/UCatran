@@ -1,0 +1,74 @@
+"""Line-delimited JSON bridge around the vendored Moodle connector, read-only."""
+import json, sys, os, re, shutil
+from pathlib import Path
+from urllib.parse import urlparse
+from moodle_mcp.config import load_settings
+from moodle_mcp.moodle import Moodle, MoodleError, LoginRequired
+from moodle_mcp.auth import browser_login
+from bs4 import BeautifulSoup
+s = load_settings()
+s.home.mkdir(parents=True, exist_ok=True, mode=0o700)
+if os.name != 'nt': os.chmod(s.home, 0o700)
+
+def clean(x): return BeautifulSoup(x or '', 'html.parser').get_text(' ', strip=True)
+def run(method, args):
+    if method == 'login': return browser_login(s, timeout_s=300)
+    if method == 'logout':
+        s.token_path.unlink(missing_ok=True)
+        shutil.rmtree(s.profile_dir, ignore_errors=True)
+        return {'ok': True}
+    if method == 'local_status': return {'connected':s.token_path.exists(), 'site':s.base_url}
+    if method == 'read_document':
+        p = Path(args['path']).resolve()
+        if not p.is_relative_to(s.download_dir.resolve()) or not p.is_file(): raise ValueError('只能读取资料库内的文件')
+        if p.stat().st_size > 30*1024*1024: raise ValueError('文件超过 30 MB')
+        if p.suffix.lower() == '.pdf':
+            from pypdf import PdfReader
+            reader = PdfReader(p)
+            text = '\n'.join((page.extract_text() or '') for page in reader.pages[:60])
+        elif p.suffix.lower() in ('.txt','.md','.csv'): text = p.read_text(encoding='utf-8-sig', errors='replace')
+        else: raise ValueError('目前支持 PDF、TXT、Markdown 和 CSV 文本读取')
+        return {'file':p.name,'text':text[:60000],'limited':len(text)>60000,'note':'PDF 最多读取前 60 页；扫描件未提供 OCR'}
+    mo = Moodle(s)
+    try:
+        if method == 'status':
+            info = mo.site_info()
+            return {'connected': True, 'name':info.get('fullname'), 'site':s.base_url}
+        if method == 'courses': return [{'id':c['id'],'name':c['fullname'],'shortname':c['shortname'],'url':f"{s.base_url}/course/view.php?id={c['id']}"} for c in mo.courses()]
+        if method == 'deadlines':
+            return [{'id':e['id'],'name':e.get('name'),'course':(e.get('course') or {}).get('fullname',''), 'timestamp':e.get('timesort') or e.get('timestart'), 'url':e.get('url'), 'description':clean(e.get('description'))[:1200]} for e in mo.upcoming(100)]
+        if method == 'browse':
+            c = mo.find_course(str(args['course']))
+            sections = []
+            for sec in mo.course_contents(c['id']):
+                items=[]
+                for m in sec.get('modules',[]):
+                    items.append({'id':m['id'],'name':m['name'],'type':m.get('modname'),'url':m.get('url'),'description':clean(m.get('description'))[:3000], 'files':[{'name':f.get('filename'),'url':f.get('fileurl'),'size':f.get('filesize')} for f in m.get('contents',[]) if f.get('type')=='file']})
+                sections.append({'name':sec.get('name'),'items':items})
+            return {'course':c['fullname'],'sections':sections}
+        if method == 'download':
+            url=args['url']; u=urlparse(url); origin=urlparse(s.base_url)
+            if u.scheme!='https' or u.netloc!=origin.netloc or not (u.path.startswith('/webservice/pluginfile.php/') or u.path.startswith('/pluginfile.php/')): raise ValueError('只允许下载当前 Moodle 的课程文件')
+            name=re.sub(r'[^\w.\- ()\u4e00-\u9fff]', '_', str(args.get('name','file')))[:160]
+            if name in ('','.','..'): raise ValueError('文件名无效')
+            folder=s.download_dir / 'Moodle'; folder.mkdir(parents=True,exist_ok=True)
+            dest=folder/name
+            if dest.exists():
+                import hashlib
+                dest=folder/(Path(name).stem+'-'+hashlib.sha256(url.encode()).hexdigest()[:8]+Path(name).suffix)
+            # Do not overwrite user-edited files.
+            if dest.exists(): return {'path':str(dest),'exists':True}
+            size=mo.download(url,dest)
+            return {'path':str(dest),'bytes':size}
+        raise ValueError('不支持的连接器工具')
+    finally: mo._client.close()
+
+for line in sys.stdin:
+    try:
+        req=json.loads(line)
+        try: result={'id':req['id'],'result':run(req['method'],req.get('args',{}))}
+        except LoginRequired: result={'id':req['id'],'error':'请先连接 UCL Moodle，或重新登录刷新会话。'}
+        except (ValueError,MoodleError) as e: result={'id':req['id'],'error':str(e)}
+        except Exception: result={'id':req['id'],'error':'连接器执行失败。请检查网络、学校移动服务权限或浏览器是否可用。'}
+        print(json.dumps(result,ensure_ascii=False),flush=True)
+    except Exception: pass

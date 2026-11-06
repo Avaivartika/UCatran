@@ -1,0 +1,35 @@
+:root{--sun-shadow:57,76,38}
+.theme-options{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px}.theme-choice{display:grid;grid-template-columns:28px 1fr;gap:2px 12px;text-align:left;min-width:180px;background:#f8faed55;padding:13px 16px}.theme-swatch{grid-row:span 2;align-self:center;width:26px;height:36px;border-radius:15px;background:#b7c5a1;border:1px solid #67765d30}.theme-swatch.yellow{background:#e9d6a8}.theme-choice small{font-size:12px}.theme-choice[aria-pressed=true],.pet-choice[aria-pressed=true]{border-color:#657a4e;box-shadow:0 0 0 1px #657a4e}.pet-options{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}.pet-choice{padding:8px 5px;background:#f7f9ef55;display:flex;flex-direction:column;align-items:center;gap:4px}.pet-choice img{width:100%;max-width:84px;aspect-ratio:1}.pet-choice span{font-size:13px}.settings .pet-switch{display:flex;align-items:center;gap:10px;font-size:15px}.pet-switch input{accent-color:var(--accent);width:17px;height:17px}.header-actions{flex-wrap:wrap}#theme-toggle{white-space:nowrap}
+/* Soft ivory-beige: low-chroma surfaces with warm neutral accents. */
+html[data-theme=yellow]{--sun-shadow:109,94,62;--sunlight-rgb:255,247,222;--sunlight-edge:255,248,228;--accent:#716954;--muted:#7d786b;--line:#cac5b9;--ink:#454238;--paper:#eee3c9;background:#eee3c9;color:var(--ink)}
+[data-theme=yellow] body{background-color:#eee3c9;color:var(--ink)}
+[data-theme=yellow] .titlebar{background:#ebdfc4;border-color:#cac5b9}
+[data-theme=yellow] aside{background-color:#f2e8d1;border-color:#cac5b9;background-image:linear-gradient(150deg,rgba(255,253,244,.30),transparent 67%),url('assets/mineral-surface.svg')}
+[data-theme=yellow] .brand,[data-theme=yellow] h1,[data-theme=yellow] h2,[data-theme=yellow] h3{color:#454238}
+[data-theme=yellow] .brand .logo,[data-theme=yellow] .chat-intro>.logo{color:#6a634f}
+[data-theme=yellow] .brand small,[data-theme=yellow] nav:before,[data-theme=yellow] #eyebrow,[data-theme=yellow] .sidebar-bottom{color:#7d786b}
+[data-theme=yellow] nav button{color:#69655a}[data-theme=yellow] nav button.active{background:#e3d4b1;color:#454238}[data-theme=yellow] nav button:hover{background:#ebdfc3}
+[data-theme=yellow] header,[data-theme=yellow] .sidebar-bottom,[data-theme=yellow] .chapter,[data-theme=yellow] .home-footer{border-color:#b5af9f70}
+[data-theme=yellow] button{background:#f3e9d2;color:#524d3f;border-color:#bab5a870}[data-theme=yellow] button:hover{background:#d8d3c5;border-color:#9f9988}
+[data-theme=yellow] button.primary{background:#716954;border-color:#716954;color:#f2efe6}[data-theme=yellow] button.primary:hover{background:#766e59}
+[data-theme=yellow] #demo,[data-theme=yellow] .date,[data-theme=yellow] .tag,[data-theme=yellow] .course .code{background:#e3d4b2;color:#655e4b}
+[data-theme=yellow] .hero{background-color:#9d947b;background-blend-mode:normal}
+[data-theme=yellow] .hero:before{background:linear-gradient(90deg,rgba(49,43,21,.56),rgba(49,43,21,.12) 65%,transparent 90%)}
+[data-theme=yellow] .hero h2{color:#f3f0e6}[data-theme=yellow] .hero .row button{background:#efeadd25;border-color:#efeadd70;color:#f5f2e9}[data-theme=yellow] .hero .row button.primary{background:#e3dfd4;border-color:#e3dfd4;color:#4c473a}
+[data-theme=yellow] .stats,[data-theme=yellow] .panel,[data-theme=yellow] .course{background:#fff1ce35;border-color:#948d794d;box-shadow:inset 0 1px 0 #f0ece080,0 3px 9px #45403108}
+[data-theme=yellow] .stats strong{color:#544e3f}[data-theme=yellow] .stats small,[data-theme=yellow] .stats .muted,[data-theme=yellow] .hint,[data-theme=yellow] .muted,[data-theme=yellow] .empty,[data-theme=yellow] .source-note,[data-theme=yellow] .footer-note,[data-theme=yellow] .list-row small,[data-theme=yellow] .chapter,[data-theme=yellow] .home-footer,[data-theme=yellow] .composer-footer small{color:#7d786b}
+[data-theme=yellow] .panel h2:before{color:#908873}[data-theme=yellow] .empty strong{color:#615c4d}[data-theme=yellow] .list-row{border-color:#b5af9f60}
+[data-theme=yellow] .search,[data-theme=yellow] input,[data-theme=yellow] textarea,[data-theme=yellow] .settings input[type=text],[data-theme=yellow] .settings input[type=password],[data-theme=yellow] .settings select{background:#f4ead4;border-color:#bcb7a9;color:#494539}
+[data-theme=yellow] .settings label{color:#5b5648}[data-theme=yellow] .consent,[data-theme=yellow] .file{background:#eaddbd}
+[data-theme=yellow] .board-lane,[data-theme=yellow] .board-lane:nth-child(2){background:#c4bead29;border-color:#948d794d}[data-theme=yellow] .board-lane .list-row{background:#e8e5db}
+[data-theme=yellow] .bubble{background:#f2e7cd;border-color:#c6c0b1}[data-theme=yellow] .bubble.user{background:#e7d8b6;border-color:#b6b0a1}[data-theme=yellow] .bubble .speaker,[data-theme=yellow] .trace,[data-theme=yellow] .bubble a{color:#69624f}
+[data-theme=yellow] .composer{background-color:#f1e5c9;border-color:#a69f8d}[data-theme=yellow] .composer textarea{background:transparent}[data-theme=yellow] .prompts button{background:#f2e6cb;border-color:#c0baab}
+[data-theme=yellow] input:focus,[data-theme=yellow] textarea:focus{border-color:#8a826c;box-shadow:0 0 0 3px #ada58e20}[data-theme=yellow] button:focus-visible{outline-color:#8a826c}[data-theme=yellow] .check{accent-color:#716954}
+[data-theme=yellow] .theme-choice,[data-theme=yellow] .pet-choice{background:#f6ebd155}[data-theme=yellow] .theme-choice[aria-pressed=true],[data-theme=yellow] .pet-choice[aria-pressed=true]{border-color:#7d755d;box-shadow:0 0 0 1px #7d755d}
+[data-theme=yellow] #page-flora{filter:sepia(.85) saturate(.6);opacity:.14}
+@media(max-width:1050px){.pet-options{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.pet-choice img{animation:none}}
+[data-theme=yellow] nav button{background:transparent;border:0}[data-theme=yellow] nav button.active{background:#e3d4b1}[data-theme=yellow] nav button:hover{background:#ebdfc3}.pet-choice img{object-fit:contain;height:84px}
+
+/* Shared UCatran identity across both palettes. */
+.brand .logo.app-brand{width:38px;height:38px;background:none;border-radius:0;font-size:0;flex-shrink:0}.brand .logo.app-brand::before{content:none}.app-brand img{display:block;width:100%;height:100%;object-fit:contain}

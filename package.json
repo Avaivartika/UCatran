@@ -1,0 +1,116 @@
+{
+  "name": "ucl-study-desktop",
+  "productName": "UCatran",
+  "version": "0.5.0",
+  "description": "Independent local desktop study agent for UCL Moodle",
+  "author": "Catwarrior · Futuoran",
+  "private": true,
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test tests/desktop.test.cjs tests/codex.test.cjs tests/appearance.test.cjs tests/platform.test.cjs",
+    "setup:connector": "python3 scripts/setup_connector.py",
+    "package": "electron-builder --mac dir --arm64",
+    "build:flora": "esbuild renderer/flora-entry.js --bundle --format=iife --outfile=renderer/flora.bundle.js --minify",
+    "prepackage": "npm run build:flora",
+    "build:icon": "node scripts/build-icon.cjs",
+    "package:win": "electron-builder --win nsis zip --x64",
+    "package:mac": "electron-builder --mac dmg zip --arm64"
+  },
+  "build": {
+    "appId": "local.uclstudy.desktop",
+    "productName": "UCatran",
+    "files": [
+      "desktop/**",
+      "renderer/**",
+      "package.json",
+      "THIRD_PARTY_NOTICES.md",
+      "ARCHITECTURE.md"
+    ],
+    "extraResources": [
+      {
+        "from": "vendor/moodle-mcp",
+        "to": "moodle-mcp",
+        "filter": [
+          "**/*",
+          "!.git/**",
+          "!**/__pycache__/**",
+          "!build/**",
+          "!*.egg-info/**",
+          "!tests/**"
+        ]
+      },
+      {
+        "from": "scripts",
+        "to": "scripts",
+        "filter": [
+          "bridge.py",
+          "connector-requirements.txt"
+        ]
+      },
+      {
+        "from": "runtime",
+        "to": "runtime",
+        "filter": [
+          "**/*",
+          "!**/__pycache__/**"
+        ]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.education",
+      "identity": null,
+      "icon": "build/ucatran.icns",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "artifactName": "UCatran-${version}-${os}-${arch}.${ext}",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/ucatran.ico",
+      "signAndEditExecutable": true
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "UCatran",
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "UCatran-${version}-windows-x64-setup.${ext}",
+      "runAfterFinish": false
+    },
+    "afterPack": "scripts/after-pack.cjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
+    "esbuild": "0.28.2"
+  },
+  "dependencies": {
+    "@alpaca-software/web-flora": "0.1.0",
+    "@earendil-works/pi-agent-core": "0.84.4",
+    "@earendil-works/pi-ai": "0.84.4",
+    "smol-toml": "^1.9.1",
+    "typebox": "1.3.7"
+  }
+}

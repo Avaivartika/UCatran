@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+ <defs>
+  <linearGradient id="ivory" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff8e4"/><stop offset=".55" stop-color="#f1e5c8"/><stop offset="1" stop-color="#dfcda8"/></linearGradient>
+  <linearGradient id="forest" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#435b3a"/><stop offset="1" stop-color="#253d30"/></linearGradient>
+  <radialGradient id="light" cx=".15" cy=".08" r=".95"><stop stop-color="#fffdf4" stop-opacity=".7"/><stop offset="1" stop-color="#fffdf4" stop-opacity="0"/></radialGradient>
+  <filter id="shadow" x="-.2" y="-.2" width="1.4" height="1.5"><feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#263b2e" flood-opacity=".15"/></filter>
+ </defs>
+ <rect x="64" y="64" width="896" height="896" rx="206" fill="url(#ivory)"/>
+ <rect x="66" y="66" width="892" height="892" rx="204" fill="url(#light)" stroke="#fff9e8" stroke-width="3"/>
+ <!-- One continuous U-shaped cat silhouette: ears, cheeks, and rounded body. -->
+ <g filter="url(#shadow)">
+ <path d="M278 500 L278 267 Q278 244 296 260 L393 339 Q444 319 496 319 Q548 319 598 339 L684 260 Q705 241 705 270 L705 543 Q705 699 565 739 Q444 773 351 690 Q278 626 278 500Z" fill="url(#forest)"/>
+ <!-- The open book is also the U counterform. -->
+ <path d="M367 508 Q429 504 493 546 Q557 504 619 508 L619 573 Q619 655 493 676 Q367 655 367 573Z" fill="#f3e8cd"/>
+ <path d="M493 548 L493 635" stroke="#344d35" stroke-width="13" stroke-linecap="round"/>
+ <path d="M399 556 Q437 561 459 577 M527 577 Q549 561 587 556" fill="none" stroke="#acb28a" stroke-width="10" stroke-linecap="round"/>
+ <!-- Calm eyes retain the cat character at small sizes. -->
+ <path d="M374 431 Q397 452 420 431 M566 431 Q589 452 612 431" fill="none" stroke="#f3e8cd" stroke-width="15" stroke-linecap="round"/>
+ <path d="M483 465 Q493 458 503 465 L493 477Z" fill="#e8d9b5"/>
+ <!-- A curled tail ends in a leaf: the natural, unhurried part of 猫然. -->
+ <path d="M625 690 C767 713 813 610 770 554" fill="none" stroke="#304a33" stroke-width="43" stroke-linecap="round"/>
+ <path d="M772 570 C711 550 712 491 734 465 C790 481 815 530 772 570Z" fill="#708153"/>
+ </g>
+</svg>

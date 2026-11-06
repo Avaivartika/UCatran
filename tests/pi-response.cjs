@@ -1,0 +1,2 @@
+function sse(message){const chunks=[];if(message.tool_calls)chunks.push({choices:[{index:0,delta:{role:'assistant',tool_calls:message.tool_calls.map((t,i)=>({index:i,...t}))},finish_reason:null}]});if(message.content)chunks.push({choices:[{index:0,delta:{role:'assistant',content:message.content},finish_reason:null}]});chunks.push({choices:[{index:0,delta:{},finish_reason:message.tool_calls?'tool_calls':'stop'}]});return chunks.map(c=>'data: '+JSON.stringify(c)+'\n\n').join('')+'data: [DONE]\n\n'}
+module.exports={sse};

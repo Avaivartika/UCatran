@@ -1,0 +1,77 @@
+/* Sunlit sage: mineral texture, daylight, and a photographic home header. */
+:root{--accent:#31462e;--muted:#768069;--line:#cbd2be;--paper:#e3e7d7;--ink:#293322;background:var(--paper);color:var(--ink)}
+body{background:var(--paper) url('assets/paper-grain.svg') repeat;color:var(--ink)}
+.titlebar{background:#e4e8d9;border-color:var(--line)}
+aside{width:180px;top:35px;padding:22px 12px 14px;background:#e8ecdf url('assets/paper-grain.svg') repeat;border-color:var(--line);overflow:hidden;gap:16px}
+.brand{margin:0 4px 4px;gap:8px;font-size:20px;letter-spacing:-.6px;flex-shrink:0;color:var(--ink)}
+.brand .logo{width:25px;height:32px;flex-shrink:0;color:#31462e}.brand .logo:before{font-size:27px}.brand small{font-size:10px;letter-spacing:.4px;margin-top:7px;color:var(--muted)}
+nav{display:flex;flex-direction:column;gap:4px;min-height:0;overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:#bcc8ac transparent;padding:0 2px}
+nav:before{content:'学习空间';padding:7px 12px;font-size:10px;letter-spacing:2px;color:#818c71;flex-shrink:0}
+nav button{flex-shrink:0;min-height:39px;padding:9px 12px;border-radius:7px;color:#69745a;gap:8px;font-size:13px}nav button span:first-child{width:19px;font-size:17px}nav button:last-child{margin-top:10px}
+nav button.active{background:#cdd6c0;color:#2a3022;box-shadow:none}nav button:hover{background:#d5dcca}.sidebar-bottom{display:block;flex-shrink:0;margin-top:0;border-top:1px solid var(--line);padding:12px 5px 0;font-size:10px;line-height:1.7;color:#707b60}.sidebar-bottom p{font-size:9px;margin:6px 0 0}.dot{width:6px;height:6px;margin-right:6px}
+main{position:relative;z-index:1;margin:35px 0 0 180px;padding:24px 28px 30px;max-width:none}aside{z-index:2}header,#page,#notice{max-width:1180px;margin-left:auto;margin-right:auto}header{padding-bottom:15px;margin-bottom:18px;border-color:var(--line)}#eyebrow{color:#7d8a6b;letter-spacing:1.4px;font-size:9px}h1{font-size:23px;color:var(--ink)}h2,h3{color:var(--ink)}
+button{background:#ecf0e7;border-color:#c8d2ba;color:#414a35;border-radius:8px}button:hover{background:#d6decc;border-color:#9baa86}button.primary{background:#31462e;border-color:#31462e;color:#f2f4ef}button.primary:hover{background:#4d583e}button:focus-visible{outline-color:#68794f}#demo{color:#64754c;background:#d2dac6;border-radius:6px}
+.hero{display:block;min-height:0;background:transparent;border:0;border-radius:0;padding:16px 0 27px;margin-bottom:20px;box-shadow:none;filter:none;overflow:visible}.hero:before{display:none}.hero-copy{padding:0;max-width:none;display:block}.hero small{color:#7a8a64;background:none;border:0;border-radius:0;padding:0;font-size:11px;letter-spacing:2px;backdrop-filter:none}.hero h2{font-size:clamp(25px,3vw,40px);line-height:1.5;font-weight:400;letter-spacing:2px;max-width:none;color:#343c28;margin:14px 0 23px;text-shadow:none;text-wrap:balance}.hero .row button{background:#e7ece1;color:#445034;border:1px solid #c3ceb3;border-radius:7px;padding:9px 14px;min-height:35px;backdrop-filter:none;font-size:12px}.hero .row button.primary{background:#31462e;color:#f2f4ef;border-color:#31462e}.hero .row button:hover{background:#cfd8c3;color:#343c28}
+.grid{gap:12px;margin-bottom:20px}.stats,.panel,.course{background:#eff2eb5c;border:1px solid #c8d2ba;border-radius:10px;box-shadow:none}.stats{padding:15px 18px}.stats strong{color:#3a432d;font-size:34px;margin:12px 0 8px}.stats small,.stats .muted{color:#7c8b66}.stats:after{display:none}.columns{gap:14px;grid-template-columns:1.15fr 1fr}.panel{padding:20px;margin-bottom:18px}.panel h2{margin-bottom:16px}.panel h2:before{color:#90a473}.chapter,.home-footer{border-color:var(--line);color:#7c8b67}.chapter{padding:13px 0;font-size:11px;letter-spacing:1px}.home-footer{font-size:9px}.list-row{border-color:#d1d9c5;padding:13px 0}.list-row small,.muted,.hint,.empty,.source-note,.footer-note{color:#758362}.empty{padding:22px 8px}.empty strong{color:#606e4d}.date,.tag{background:#d4dcc9;color:#607049}.course{min-height:175px;padding:20px}.course .code,.course:nth-child(3n+2) .code,.course:nth-child(3n+3) .code{background:#d5dcca;color:#5b6a46}.course h3{font-size:18px}.search,input,textarea,.settings input[type=text],.settings input[type=password]{background:#ecefe7;border-color:#c8d2b9;color:#313926}.search{border-radius:9px;padding:12px 15px}.file,.consent{background:#dce3d3}.settings label{color:#586744}.settings{max-width:900px}.board{gap:14px}.board-lane,.board-lane:nth-child(2){background:#d7decd66;border:1px solid #c5d0b6;border-radius:10px;min-height:180px;padding:16px}.board-lane .list-row{background:#e9ede4;border-radius:8px}.check{accent-color:#4d573e}.done{color:#97a683}
+.chat-layout{max-width:880px;min-height:calc(100vh - 170px)}.chat-layout:has(.chat-intro){min-height:0}.chat-intro{padding:22px 12px 24px}.chat-intro>.logo{color:#606c4e;font-size:46px;height:58px}.chat-intro h2{font-size:31px;color:#3c462d;letter-spacing:5px;margin:7px 0 12px}.chat-intro .muted{color:#758362}.prompts{margin-top:23px}.prompts button{background:#e5eadf;border:1px solid #c8d2b9}.bubble{background:#ecf0e7;border-color:#cdd6c0}.bubble.user{background:#d3dbc7;border-color:#bfcaaf}.bubble .speaker,.trace{color:#66774f}.composer{background:#e9ede4 url('assets/paper-grain.svg');border-color:#b9c6a7;border-radius:12px;box-shadow:0 3px 12px #424d3208;margin-top:8px}.composer-footer small{color:#7c8b66}input:focus,textarea:focus{border-color:#8c9f72;box-shadow:0 0 0 3px #9fb08720}
+#page-flora{position:fixed;right:-18px;bottom:-38px;width:290px;height:470px;max-height:75vh;object-fit:contain;pointer-events:none;user-select:none;z-index:0;opacity:.16;filter:sepia(.75) saturate(.4);animation:none;transition:none}
+@media(max-width:1050px){main{padding:22px}.columns{grid-template-columns:1fr}.board{grid-template-columns:1fr}}
+@media(max-width:850px){aside{width:164px;padding:20px 10px 12px}.brand{font-size:18px}.brand>div,.brand small,nav button .label{display:block}nav:before{display:block}.brand .logo{margin:0}.brand{margin:0 3px 4px}nav button{justify-content:flex-start;padding:9px 10px}nav button span:first-child{width:19px}.sidebar-bottom{display:block}main{margin-left:164px;padding:20px}.hero h2{font-size:27px;letter-spacing:1px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}#page-flora{width:210px;height:350px;opacity:.12}}
+@media(max-width:600px){aside{width:64px;padding:16px 8px}.brand>div,nav button .label,nav:before,.sidebar-bottom{display:none}.brand{justify-content:center}nav button{justify-content:center;padding:10px 5px}main{margin-left:64px;padding:16px}.hero h2{font-size:24px}.grid{grid-template-columns:1fr}.header-actions{flex-wrap:wrap}.hero .row{gap:7px}}
+html{min-height:100%;background:var(--paper) url('assets/paper-grain.svg') repeat}body{min-height:100vh}.task-form input{border-color:#c8d2b9;border-radius:8px}
+
+/* Daylight crosses the same sage surface on every page. */
+html{background:#e3e7d7}
+body{background-color:#e3e7d7;background-image:url('assets/paper-grain.svg'),linear-gradient(148deg,transparent 31%,rgba(255,255,232,.48) 33%,rgba(255,255,237,.64) 44%,transparent 46%,transparent 61%,rgba(255,255,235,.36) 63%,rgba(255,255,237,.42) 72%,transparent 74%),linear-gradient(110deg,rgba(100,117,76,.10),transparent 45%,rgba(255,255,237,.40));background-repeat:repeat,no-repeat,no-repeat;background-attachment:fixed;background-size:240px 240px,100vw 100vh,100vw 100vh}
+aside{background-color:#e8ecdf;background-image:url('assets/paper-grain.svg'),linear-gradient(150deg,rgba(255,255,244,.55),transparent 62%)}
+.stats,.panel,.course{background:#f8faef52;border-color:#bac5ab80;box-shadow:inset 0 1px 0 #fffff780,0 3px 14px #34452a04}
+.board-lane,.board-lane:nth-child(2){background:#cad4bc40;border-color:#bac5ab80}
+.composer{background-color:#f3f6e9;box-shadow:0 5px 18px #34452a08}
+.hero{position:relative;isolation:isolate;display:flex;align-items:center;min-height:300px;padding:30px 34px;border-radius:14px;overflow:hidden;background:#304923 url('assets/sunlit-lawn.png') center 53%/cover;box-shadow:0 5px 20px #263a1e12}
+.hero:before{display:block;content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,rgba(17,33,15,.55),rgba(17,33,15,.18) 57%,transparent 82%)}
+.hero-copy{max-width:700px}.hero small{color:#f5f5d9;letter-spacing:2px}.hero h2{max-width:650px;font-size:clamp(29px,3.4vw,45px);line-height:1.6;color:#fffef0;letter-spacing:2px;margin:17px 0 27px;text-shadow:0 2px 12px #10240c55}
+.hero .row button{background:#f4f6df25;color:#fffef2;border-color:#ffffe875;backdrop-filter:blur(10px)}.hero .row button.primary{background:#f3f4df;color:#2d4229;border-color:#f3f4df}.hero .row button:hover{background:#e5ebcf;color:#2d4229}
+#page-flora{filter:sepia(.4) saturate(.5) hue-rotate(24deg);opacity:.15}
+@media(max-width:850px){.hero{min-height:260px;padding:24px}.hero h2{font-size:29px;max-width:400px}}
+@media(max-width:600px){.hero{min-height:240px;padding:22px}.hero h2{font-size:25px}}
+
+.hero h2{white-space:pre-line;font-size:clamp(29px,3vw,40px);line-height:1.65;letter-spacing:2px;margin:0 0 25px}
+@media(max-width:850px){.hero h2{font-size:27px;letter-spacing:1px}}
+/* Raking light reveals plaster relief; the base remains botanical green. */
+html{background:#d6ddc5}
+body{background-color:#d6ddc5;background-image:linear-gradient(149deg,rgba(57,76,38,.18) 0%,rgba(57,76,38,.12) 29.4%,rgba(255,255,224,.62) 30.2%,rgba(255,255,232,.62) 49.5%,rgba(69,87,46,.10) 50.6%,rgba(69,87,46,.10) 64.5%,rgba(255,255,230,.45) 65.3%,rgba(255,255,230,.45) 79.2%,rgba(69,87,46,.08) 80.3%),url('assets/mineral-surface.svg'),url('assets/paper-grain.svg');background-blend-mode:normal,soft-light,multiply;background-size:100vw 100vh,700px 700px,240px 240px;background-repeat:no-repeat,repeat,repeat;background-attachment:fixed}
+aside{background-color:#e0e5d1;background-image:linear-gradient(150deg,rgba(255,255,232,.48),transparent 67%),url('assets/mineral-surface.svg');background-blend-mode:normal,soft-light;background-size:auto,700px 700px}
+.stats,.panel,.course{background:#f5f8e735;border-color:#8a99794d;box-shadow:inset 0 1px 0 #ffffee90,0 3px 9px #32412708}
+.board-lane,.board-lane:nth-child(2){background:#c4ceb629;border-color:#8a99794d}
+.composer{background-color:#eef2de;background-image:url('assets/paper-grain.svg');border-color:#9dab87}
+.titlebar{background:#dfe5cf}
+
+body{background-image:var(--daylight,linear-gradient(139deg,rgba(57,76,38,.09),rgba(255,255,230,.35))),url('assets/mineral-surface.svg'),url('assets/paper-grain.svg')}
+/* Readable Songti hierarchy: larger body copy, selective emphasis. */
+:root{font-size:15px}
+body{line-height:1.65}
+h1{font-size:26px;font-weight:600}
+h2,h3,.panel h2,.course h3{font-weight:600}
+.panel h2{font-size:17px}
+.brand{font-weight:600}.brand small{font-size:11px;font-weight:400}
+nav button{font-size:15px;line-height:1.5}nav button.active{font-weight:700}
+nav:before{font-size:11px}
+button,.hero .row button{font-size:14px;line-height:1.5}
+button.primary{font-weight:600}
+button.small,.header-actions button,.prompts button{font-size:13px}
+button.small{min-height:34px}
+input,textarea,.settings input[type=text],.settings input[type=password],.composer textarea{font-size:15px}
+.settings label{font-size:14px;font-weight:600}.settings .consent{font-weight:400}
+.hint,.chat-intro .muted,.chat-layout .muted,.empty,.source-note,.file{font-size:13px}
+.empty strong{font-size:15px;font-weight:600}
+.list-row small,.stats small,.date,.tag,.course .code,.composer-footer small,.bubble .speaker{font-size:12px}
+.stats span{font-size:13px}.stats strong{font-size:37px;font-weight:500}
+.list-row .grow>div,.board-lane .list-row .grow>div{font-size:15px;line-height:1.75}
+.board-lane h3{font-size:14px;font-weight:600}
+.board-lane .list-row .ghost{font-size:12px}
+.bubble{font-size:15px;line-height:1.9}.trace{font-size:13px}
+.chapter{font-size:12px;font-weight:600}
+#eyebrow,.home-footer,.footer-note,.sidebar-bottom{font-size:11px}
+.sidebar-bottom p{font-size:10px}.hero h2{font-weight:400}
+@media(max-width:850px){nav button{font-size:14px}.header-actions button{font-size:13px}.hero .row button{font-size:13px}}
+.codex-connect{padding:0 0 16px;border-bottom:1px solid var(--line);margin-bottom:18px}.codex-connect .hint{margin-bottom:0}.settings select{font:inherit;font-size:14px;color:var(--ink);width:100%;padding:12px;border:1px solid #bac5ab;border-radius:8px;background:#eef2e5}.settings input:disabled{opacity:.65;cursor:default}

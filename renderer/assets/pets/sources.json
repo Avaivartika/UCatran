@@ -1,0 +1,68 @@
+{
+  "kitty": {
+    "source": "https://www.sanrio.co.jp/wp-content/uploads/2022/06/mv-hellokitty.png",
+    "viewport": [
+      0,
+      0,
+      1004,
+      560
+    ],
+    "sha256": "b86e6ef8ba8397d00e12816d83ccc9f228c9ff0351642e086d82f5b7d95ffdd7",
+    "credit": "© SANRIO"
+  },
+  "cinnamoroll": {
+    "source": "https://www.sanrio.co.jp/wp-content/uploads/2022/06/mv-cinnamon.png",
+    "viewport": [
+      66,
+      104,
+      890,
+      417
+    ],
+    "sha256": "9344d335e7591c8599e7cc32730b315401037d58e15c14dcf23853de74867520",
+    "credit": "© SANRIO"
+  },
+  "chiikawa": {
+    "source": "https://www.anime-chiikawa.jp/images/characters/img_charapage.png",
+    "viewport": [
+      0,
+      0,
+      335,
+      362
+    ],
+    "sha256": "856b8b0e181c4a1c2a826816ed0b19eaad271fb580e76c5b21273885ec0ff07e",
+    "credit": "© ナガノ / ちいかわ製作委員会"
+  },
+  "hachiware": {
+    "source": "https://www.anime-chiikawa.jp/images/characters/img_charapage.png",
+    "viewport": [
+      343,
+      0,
+      335,
+      374
+    ],
+    "sha256": "856b8b0e181c4a1c2a826816ed0b19eaad271fb580e76c5b21273885ec0ff07e",
+    "credit": "© ナガノ / ちいかわ製作委員会"
+  },
+  "usagi": {
+    "source": "https://www.anime-chiikawa.jp/images/characters/img_charapage.png",
+    "viewport": [
+      690,
+      0,
+      335,
+      463
+    ],
+    "sha256": "856b8b0e181c4a1c2a826816ed0b19eaad271fb580e76c5b21273885ec0ff07e",
+    "credit": "© ナガノ / ちいかわ製作委員会"
+  },
+  "momonga": {
+    "source": "https://www.anime-chiikawa.jp/images/characters/img_charapage.png",
+    "viewport": [
+      1035,
+      0,
+      419,
+      391
+    ],
+    "sha256": "856b8b0e181c4a1c2a826816ed0b19eaad271fb580e76c5b21273885ec0ff07e",
+    "credit": "© ナガノ / ちいかわ製作委員会"
+  }
+}
