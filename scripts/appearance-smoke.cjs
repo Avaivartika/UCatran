@@ -7,6 +7,19 @@ const {_electron:electron}=require('@playwright/test'),fs=require('node:fs'),os=
  pet.on('pageerror',e=>errors.push(e.message));await pet.locator('#pet-image').waitFor();await pet.waitForFunction(()=>document.querySelector('#pet-image').complete);assert.equal(await pet.evaluate(()=>typeof window.study),'undefined');await assert.rejects(()=>pet.evaluate(()=>window.pet.call('saveConfig',{})),/未知桌宠操作/);await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>w.getTitle()==='UCatran 桌宠').setPosition(80,80));await p.waitForTimeout(350);
  for(const [id,name] of Object.entries({kitty:'Kitty',cinnamoroll:'玉桂狗',usagi:'乌撒奇',chiikawa:'吉伊',hachiware:'小八',momonga:'飞鼠'})){await p.getByRole('button',{name:`选择${name}`,exact:true}).click();await pet.waitForFunction(id=>document.querySelector('#pet-image').getAttribute('src')===`assets/pets/${id}.svg`&&document.querySelector('#pet-image').complete,id);assert.equal(await pet.locator('#pet-image').evaluate(img=>img.naturalWidth>0),true)}
  await pet.locator('#character').click();await pet.getByText('休息一下，再读一页。').waitFor();await pet.screenshot({path:'preview-pet.png',omitBackground:true});await pet.locator('#menu').click();await pet.locator('#pet-choice').selectOption('usagi');await p.waitForFunction(()=>document.querySelector('[data-pet-choice="usagi"]').getAttribute('aria-pressed')==='true');await pet.getByRole('button',{name:'打开学习助手',exact:true}).click();await p.getByRole('heading',{name:'学习助手',exact:true}).waitFor();
+ if(process.platform==='win32'){
+  const result=await app.evaluate(({BrowserWindow})=>{
+   const pet=BrowserWindow.getAllWindows().find(w=>w.getTitle()==='UCatran 桌宠');
+   const owner=pet.getParentWindow();
+   if(!owner)return {owned:false};
+   owner.close();
+   const state={owned:true,mainVisible:owner.isVisible(),petVisible:pet.isVisible(),petFocusable:pet.isFocusable()};
+   owner.show();
+   return state;
+  });
+  assert.deepEqual(result,{owned:true,mainVisible:false,petVisible:true,petFocusable:false});
+ }
+
  await p.setViewportSize({width:800,height:600});await p.locator('nav button[data-view="settings"]').click();assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  await app.close();p=await launch();assert.equal(await p.locator('html').getAttribute('data-theme'),'yellow');await p.waitForTimeout(500);pet=app.windows().find(w=>w!==p);assert(pet);assert.deepEqual(await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>w.getTitle()==='UCatran 桌宠').getPosition()),[80,80]);await pet.waitForFunction(()=>document.querySelector('#pet-choice').value==='usagi');await pet.locator('#hide').click();await p.locator('nav button[data-view="settings"]').click();await p.waitForFunction(()=>!document.querySelector('#pet-enabled').checked);await p.getByRole('button',{name:'切换到草绿主题',exact:true}).click();assert.equal(await p.locator('html').getAttribute('data-theme'),'green');assert.deepEqual(errors,[]);console.log('Both themes, six pets, isolated pet IPC, interaction, persistence, hide and narrow layout passed.');
  }finally{if(app)await app.close();fs.rmSync(temp,{recursive:true,force:true})}})().catch(e=>{console.error(e);process.exit(1)});

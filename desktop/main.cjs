@@ -35,7 +35,7 @@ function syncPet(){
  if(petWin&&!petWin.isDestroyed()){sendPet();return}
  const saved=state.petPosition;const display=saved&&Number.isFinite(saved.x)&&Number.isFinite(saved.y)?screen.getDisplayNearestPoint({x:Math.round(saved.x),y:Math.round(saved.y)}):screen.getPrimaryDisplay();
  const position=clampPetPosition(saved,display.workArea);
- const pet=new BrowserWindow({width:210,height:250,...position,frame:false,transparent:true,resizable:false,maximizable:false,minimizable:false,alwaysOnTop:true,skipTaskbar:true,show:false,hasShadow:false,icon:brandIcon,title:'UCatran 桌宠',webPreferences:{preload:path.join(__dirname,'pet-preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+ const pet=new BrowserWindow({width:210,height:250,...position,...(process.platform==='win32'?{parent:win,focusable:false}:{}),frame:false,transparent:true,resizable:false,maximizable:false,minimizable:false,alwaysOnTop:true,skipTaskbar:true,show:false,hasShadow:false,icon:brandIcon,title:'UCatran 桌宠',webPreferences:{preload:path.join(__dirname,'pet-preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
  petWin=pet;pet.webContents.setWindowOpenHandler(()=>({action:'deny'}));pet.webContents.on('will-navigate',e=>e.preventDefault());
  pet.once('ready-to-show',()=>{if(!pet.isDestroyed()){pet.showInactive();if(process.platform==='win32')pet.setSkipTaskbar(true)}});
  pet.on('move',()=>{clearTimeout(positionTimer);positionTimer=setTimeout(()=>{if(!pet.isDestroyed()){const [x,y]=pet.getPosition();state.petPosition={x,y};save()}},250)});
@@ -197,6 +197,13 @@ app.whenReady().then(()=>{
  });
  win.loadFile(path.join(root,'renderer/index.html'));
  lifecycle=installLifecycle({app,window:win,icon:path.join(root,'renderer/assets/brand/ucatran.png'),onQuit:()=>{controller?.abort();stopWorker();save()},onStop:()=>{controller?.abort();stopWorker()},isBusy:()=>chatBusy});
+ if(process.platform==='win32'){
+  // Windows hides owned windows along with their owner. Keep the pet visible
+  // while retaining native ownership, which excludes it from the taskbar.
+  const keepPetVisible=()=>{if(petWin&&!petWin.isDestroyed()&&state.appearance.petEnabled)petWin.showInactive()};
+  win.on('hide',keepPetVisible);
+  win.on('minimize',keepPetVisible);
+ }
  win.on('closed',()=>{win=null;if(petWin&&!petWin.isDestroyed())petWin.close()});
  syncPet();
  // Reminders apply only to explicit local tasks, while this app is running.
