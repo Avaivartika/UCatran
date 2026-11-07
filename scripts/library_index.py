@@ -13,12 +13,16 @@ def extract(path):
     else:
         yield 0, path.read_text(encoding='utf-8-sig', errors='replace')
 
-def search_library(root, home, query='', rebuild=False):
+def search_library(root, home, query='', rebuild=False, scope=''):
     root, home = Path(root).resolve(), Path(home)
     query = str(query).strip()
+    unfiled = scope == '@unfiled'
+    scoped = (root / str(scope)).resolve() if scope and not unfiled else root
+    if not scoped.is_relative_to(root): raise ValueError('检索范围超出资料库')
     if len(query) > 200: raise ValueError('检索词最多 200 字')
     db = sqlite3.connect(home/'library-index.sqlite')
     db.create_function('filename', 1, lambda value: Path(value).name, deterministic=True)
+    db.create_function('parentdir', 1, lambda value: str(Path(value).parent), deterministic=True)
     warnings=[]; seen=set()
     try:
         db.execute('CREATE TABLE IF NOT EXISTS documents(path TEXT PRIMARY KEY, digest TEXT)')
@@ -62,10 +66,17 @@ def search_library(root, home, query='', rebuild=False):
             # so an agent can locate a document by the user's supplied name.
             where=' AND '.join("rowid IN (SELECT rowid FROM passages WHERE body LIKE ? ESCAPE '\\' UNION SELECT rowid FROM passages WHERE filename(path) LIKE ? ESCAPE '\\')" for _ in escaped)
             params=tuple('%'+term+'%' for term in escaped for _ in range(2))
+            if unfiled:
+                where += ' AND parentdir(path) IN (?, ?)'
+                params += (str(root), str(root / 'Moodle'))
+            if scoped != root:
+                prefix = str(scoped) + __import__('os').sep
+                where += " AND path LIKE ? ESCAPE '\\'"
+                params += (prefix.replace('\\','\\\\').replace('%','\\%').replace('_','\\_')+'%',)
             rows=db.execute('SELECT path,page,part,body FROM passages WHERE '+where+' LIMIT 100',params).fetchall()
             for key,page,part,body in rows:
                 pos=min((body.casefold().find(t) for t in terms if t in body.casefold()),default=0)
-                results.append({'path':key,'file':Path(key).name,'page':page,'part':part,'excerpt':body[max(0,pos-100):pos+500],'score':sum(body.casefold().count(t) for t in terms)})
+                results.append({'path':key,'file':Path(key).name,'relativePath':str(Path(key).relative_to(root)),'page':page,'part':part,'excerpt':body[max(0,pos-100):pos+500],'score':sum(body.casefold().count(t) for t in terms)})
             results.sort(key=lambda x:(-x['score'],x['file'],x['page'],x['part']))
         return {'results':results[:20],'documents':count,'warnings':warnings,'note':'本地全文检索；PDF 按页定位，无 OCR；每个文件最大 30 MB。多词以空格分隔，返回同时包含各词的片段。'}
     finally: db.close()

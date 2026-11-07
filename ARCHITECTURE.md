@@ -12,6 +12,21 @@ Pi Agent → desktop/agent/tools.mjs → host dispatch → Python Moodle bridge 
 - `desktop/core.cjs`: shared URL/path validation and dynamic ESM runtime entry.
 - `scripts/bridge.py` and `vendor/moodle-mcp`: read-only Moodle API and browser SSO integration.
 - `renderer/app.js`: streamed assistant text, tool execution events and existing course/library/task UI.
+- `renderer/course-library.js` and `scripts/course_catalog.py`: original Moodle cover loading, safe rich-content trees, chapter navigation, scoped library views, course/section/activity download paths, non-destructive download version tracking and legacy organization.
+- `desktop/home-photo.cjs` and `renderer/home-photo.js`: local-only homepage image selection, size/type checks, preview, crop position, persistence and default restoration.
+
+## Course presentation and local assets (0.9)
+
+Course covers and supported embedded raster images are fetched by the authenticated
+Python connector, restricted to the current Moodle file host, limited to 5 MB,
+checked for raster signatures and cached outside the library. Only image data
+URIs reach the renderer. Tokens are stripped from displayed metadata URLs.
+Rich Moodle HTML becomes an allowlisted tree of headings, lists, links, tables
+and text, rendered with DOM APIs; scripts, forms and raw HTML are never inserted.
+Downloads verify the selected file belongs to the chosen course activity. A local
+manifest distinguishes same-named files and server revisions without overwriting
+existing documents. Legacy loose downloads move only after unique attribution;
+ambiguous or inaccessible-course cases retain the original files.
 
 ## Pi provenance
 

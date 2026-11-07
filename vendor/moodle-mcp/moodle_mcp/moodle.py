@@ -147,7 +147,7 @@ class Moodle:
         sep = "&" if "?" in url else "?"
         return f"{url}{sep}token={self._token}"
 
-    def download(self, url: str, dest) -> int:
+    def download(self, url: str, dest, max_bytes: int = 250 * 1024 * 1024) -> int:
         """Stream a Moodle file to `dest`; returns bytes written."""
         from pathlib import Path
         dest = Path(dest)
@@ -164,8 +164,8 @@ class Moodle:
                 with temporary.open("xb") as fh:
                     for chunk in r.iter_bytes():
                         written += len(chunk)
-                        if written > 250 * 1024 * 1024:
-                            raise MoodleError('File exceeds 250 MB download limit')
+                        if written > max_bytes:
+                            raise MoodleError('File exceeds download size limit')
                         fh.write(chunk)
             if dest.exists():
                 raise MoodleError('Destination already exists')

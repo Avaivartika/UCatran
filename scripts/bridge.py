@@ -6,6 +6,7 @@ from moodle_mcp.config import load_settings
 from moodle_mcp.moodle import Moodle, MoodleError, LoginRequired
 from moodle_mcp.auth import browser_login
 from bs4 import BeautifulSoup
+from course_catalog import rich_content, course_image_url, public_url, image_data, download_resource, organize_downloads
 s = load_settings()
 s.home.mkdir(parents=True, exist_ok=True, mode=0o700)
 if os.name != 'nt': os.chmod(s.home, 0o700)
@@ -14,7 +15,7 @@ def clean(x): return BeautifulSoup(x or '', 'html.parser').get_text(' ', strip=T
 def run(method, args):
     if method in ('search_library','index_library'):
         from library_index import search_library
-        return search_library(s.download_dir,s.home,args.get('query',''),args.get('rebuild',False))
+        return search_library(s.download_dir,s.home,args.get('query',''),args.get('rebuild',False),args.get('scope',''))
     if method == 'login': return browser_login(s, timeout_s=300)
     if method == 'logout':
         s.token_path.unlink(missing_ok=True)
@@ -40,7 +41,9 @@ def run(method, args):
         if method == 'status':
             info = mo.site_info()
             return {'connected': True, 'name':info.get('fullname'), 'site':s.base_url}
-        if method == 'courses': return [{'id':c['id'],'name':c['fullname'],'shortname':c['shortname'],'url':f"{s.base_url}/course/view.php?id={c['id']}"} for c in mo.courses()]
+        if method == 'course_image': return image_data(mo, args.get('url',''))
+        if method == 'organize_downloads': return organize_downloads(mo)
+        if method == 'courses': return [{'id':c['id'],'name':c['fullname'],'shortname':c['shortname'],'url':f"{s.base_url}/course/view.php?id={c['id']}", 'image':course_image_url(c,s.base_url),'summary':clean(c.get('summary'))[:400], 'progress':c.get('progress'), 'lastAccess':c.get('lastaccess',0), 'startDate':c.get('startdate')} for c in mo.courses()]
         if method == 'deadlines':
             return [{'id':e['id'],'name':e.get('name'),'course':(e.get('course') or {}).get('fullname',''), 'timestamp':e.get('timesort') or e.get('timestart'), 'url':e.get('url'), 'description':clean(e.get('description'))[:1200]} for e in mo.upcoming(100)]
         if method == 'browse':
@@ -49,23 +52,19 @@ def run(method, args):
             for sec in mo.course_contents(c['id']):
                 items=[]
                 for m in sec.get('modules',[]):
-                    items.append({'id':m['id'],'name':m['name'],'type':m.get('modname'),'url':m.get('url'),'description':clean(m.get('description'))[:3000], 'files':[{'name':f.get('filename'),'url':f.get('fileurl'),'size':f.get('filesize')} for f in m.get('contents',[]) if f.get('type')=='file']})
-                sections.append({'name':sec.get('name'),'items':items})
-            return {'course':c['fullname'],'sections':sections}
+                    if m.get('uservisible') is False: continue
+                    item={'id':m['id'],'name':m['name'],'type':m.get('modname'),'url':public_url(m.get('url'),s.base_url) if m.get('url') else '', 'description':clean(m.get('description'))[:6000], 'indent':min(4,max(0,m.get('indent',0))), 'completed':bool((m.get('completiondata') or {}).get('state')), 'files':[{'name':f.get('filename'),'url':public_url(f.get('fileurl'),s.base_url),'size':f.get('filesize'),'modified':f.get('timemodified'),'mimetype':f.get('mimetype'),'filepath':f.get('filepath')} for f in m.get('contents',[]) if f.get('type')=='file']}
+                    if args.get('rich'): item['content']=rich_content(m.get('description'),s.base_url)
+                    items.append(item)
+                section={'id':sec.get('id'),'number':sec.get('section',len(sections)),'name':sec.get('name'),'summary':clean(sec.get('summary'))[:6000],'items':items}
+                if args.get('rich'): section['content']=rich_content(sec.get('summary'),s.base_url)
+                if sec.get('uservisible') is not False: sections.append(section)
+            return {'id':c['id'],'course':c['fullname'],'shortname':c['shortname'],'url':f"{s.base_url}/course/view.php?id={c['id']}",'image':course_image_url(c,s.base_url),'sections':sections}
         if method == 'download':
             url=args['url']; u=urlparse(url); origin=urlparse(s.base_url)
             if u.scheme!='https' or u.netloc!=origin.netloc or not (u.path.startswith('/webservice/pluginfile.php/') or u.path.startswith('/pluginfile.php/')): raise ValueError('只允许下载当前 Moodle 的课程文件')
-            name=re.sub(r'[^\w.\- ()\u4e00-\u9fff]', '_', str(args.get('name','file')))[:160]
-            if name in ('','.','..'): raise ValueError('文件名无效')
-            folder=s.download_dir / 'Moodle'; folder.mkdir(parents=True,exist_ok=True)
-            dest=folder/name
-            if dest.exists():
-                import hashlib
-                dest=folder/(Path(name).stem+'-'+hashlib.sha256(url.encode()).hexdigest()[:8]+Path(name).suffix)
-            # Do not overwrite user-edited files.
-            if dest.exists(): return {'path':str(dest),'exists':True}
-            size=mo.download(url,dest)
-            return {'path':str(dest),'bytes':size}
+            if not args.get('courseId') or not args.get('moduleId'): raise ValueError('请从所属课程中下载资料')
+            return download_resource(mo,args)
         raise ValueError('不支持的连接器工具')
     finally: mo._client.close()
 

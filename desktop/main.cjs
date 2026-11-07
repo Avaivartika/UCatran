@@ -7,6 +7,7 @@ const {pythonExecutable,windowChrome}=require('./platform.cjs');
 const {createModelFetch}=require('./network.cjs');
 const {agentOptions,codexModels}=require('./agent-config.cjs');
 const {installLifecycle}=require('./lifecycle.cjs');let lifecycle;
+const {photoData,photoPosition}=require('./home-photo.cjs');
 const windowsAppId='local.uclstudy.desktop';
 const brandIcon=path.join(__dirname,'../renderer/assets/brand/ucatran.png');
 const root=path.resolve(__dirname,'..');let petWin,petStatus='陪你读书',positionTimer,petDrag=null;let win,worker,seq=0,controller,chatBusy=false;const pending=new Map();
@@ -25,8 +26,8 @@ function snapshotChat(){return {id:state.chatId,title:state.conversations.find(m
 function retainChat(){const chat=snapshotChat();state.savedChats=state.savedChats.filter(c=>c.id!==chat.id);if(chat.conversations.length)state.savedChats.push(chat)}
 function save(){const temp=statePath+'.tmp';fs.writeFileSync(temp,JSON.stringify(state),{mode:0o600});fs.renameSync(temp,statePath)}
 function key(){try{return safeStorage.decryptString(fs.readFileSync(path.join(home,'model-key')))}catch{return ''}}
-function visibleState(){return {chatId:state.chatId,appearance:state.appearance,config:{...state.config,hasKey:fs.existsSync(path.join(home,'model-key'))},todos:state.todos,conversations:state.conversations,cache:state.cache,library:files(),demo:process.env.UCL_STUDY_DEMO==='1'}}
-function files(dir=library){return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>{const p=path.join(dir,e.name);if(e.isSymbolicLink())return [];return e.isDirectory()?files(p):[{name:e.name,path:p,size:fs.statSync(p).size}]})}
+function visibleState(){return {chatId:state.chatId,appearance:state.appearance,homePhoto:state.homePhoto||null,config:{...state.config,hasKey:fs.existsSync(path.join(home,'model-key'))},todos:state.todos,conversations:state.conversations,cache:state.cache,library:files(),demo:process.env.UCL_STUDY_DEMO==='1'}}
+function files(dir=library,records){if(!records){try{records=JSON.parse(fs.readFileSync(path.join(connectorHome,'download-records.json'),'utf8'))}catch{records={}}}return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>{const p=path.join(dir,e.name);if(e.isSymbolicLink()||e.name.endsWith('.partial'))return [];if(e.isDirectory())return files(p,records);const stat=fs.statSync(p),relativePath=path.relative(library,p),parts=relativePath.split(path.sep);const course=parts[0]==='Moodle'&&parts.length>=3?parts[1]:parts[0]==='Personal'?'个人资料':'待归档';const record=records[relativePath]||{};return [{name:record.name||e.name,path:p,size:stat.size,modified:stat.mtimeMs,relativePath,course:record.course||(parts[0]==='Moodle'?(state.cache.courses?.data||[]).find(c=>parts[1]?.startsWith(String(c.id)+' · '))?.name:null)||course,scope:course==='待归档'?'':parts[0]==='Personal'?'Personal':parts.slice(0,2).join('/'),section:record.section?[record.section,record.activity,record.sourceFolder!=='/'?record.sourceFolder:''].filter(Boolean).join(' / '):parts[0]==='Moodle'&&parts.length>=4?parts.slice(2,-1).join(' / '):''}]})}
 function petState(){return {...state.appearance,status:petStatus,busy:chatBusy}}
 function sendPet(){if(petWin&&!petWin.isDestroyed())petWin.webContents.send('pet:state',petState())}
 function emit(data){if(win&&!win.isDestroyed())win.webContents.send('agent:event',data);if(data.type==='tool'){petStatus=data.status==='running'?'正在查阅资料…':'资料已找到';sendPet()}}
@@ -55,7 +56,7 @@ function getWorker(){
  child.stderr.on('data',()=>{});
  child.on('error',()=>{if(worker===child)stopWorker()});child.on('exit',()=>{if(worker===child)stopWorker()});return child;
 }
-function demo(method,args){const due=Math.floor(Date.now()/1000)+3*86400;const course={id:101,name:'示例 · Machine Learning',shortname:'DEMO001',url:'https://moodle.ucl.ac.uk'};if(method==='local_status'||method==='status')return {connected:true,name:'演示同学',site:'示例数据'};if(method==='courses')return [course];if(method==='deadlines')return [{id:1,name:'示例 · Coursework 1',course:course.name,timestamp:due,url:course.url}];if(method==='browse')return {course:course.name,sections:[{name:'Week 1 · 示例',items:[{name:'Introduction to learning',type:'resource',description:'示例课程资料，不是真实 UCL 内容。',url:course.url,files:[]}]}]};throw Error('演示模式不执行登录或下载');}
+function demo(method,args){const due=Math.floor(Date.now()/1000)+3*86400;const course={id:101,name:'示例 · Machine Learning',shortname:'DEMO001',image:'assets/sunlit-lawn.png',lastAccess:1,summary:'示例课程：按章节浏览课程说明、学习活动和资料。',url:'https://moodle.ucl.ac.uk'};if(method==='local_status'||method==='status')return {connected:true,name:'演示同学',site:'示例数据'};if(method==='courses')return [course];if(method==='deadlines')return [{id:1,name:'示例 · Coursework 1',course:course.name,timestamp:due,url:course.url}];if(method==='browse')return {id:course.id,course:course.name,shortname:course.shortname,image:course.image,url:course.url,sections:[{id:1,number:0,name:'Week 1 · 示例',content:[{tag:'p',children:[{text:'本周学习目标'},{tag:'strong',children:[{text:'：理解基础概念'}]}]},{tag:'ul',children:[{tag:'li',children:[{text:'阅读导学内容'}]},{tag:'li',children:[{text:'完成练习'}]}]}],items:[{id:10,name:'Introduction to learning',type:'page',description:'示例课程资料，不是真实 UCL 内容。',url:course.url,files:[]}]},{id:2,number:1,name:'Week 2 · 课程资料',items:[{id:20,name:'Lecture materials',type:'folder',description:'第二周讲义与练习',url:course.url,files:[{name:'Lecture 2.pdf',size:321000,url:'https://moodle.ucl.ac.uk/pluginfile.php/demo/lecture.pdf'},{name:'Exercises.txt',size:300,url:'https://moodle.ucl.ac.uk/pluginfile.php/demo/exercises.txt'}]}]}]};throw Error('演示模式不执行登录或下载');}
 function rpc(method,args={}){if(process.env.UCL_STUDY_DEMO==='1'&&!['read_document','search_library','index_library','logout'].includes(method))return Promise.resolve(demo(method,args));return new Promise((resolve,reject)=>{let child;try{child=getWorker()}catch(e){reject(e);return}const id=++seq;const timer=setTimeout(()=>{pending.delete(id);reject(Error('连接器超时，请重试'));stopWorker()},method==='login'?330000:180000);pending.set(id,{resolve,reject,timer});child.stdin.write(JSON.stringify({id,method,args})+'\n')})}
 const services=[{name:'UCL Moodle',description:'课程、作业、课程资料',url:'https://moodle.ucl.ac.uk'},{name:'UCL Library',description:'图书馆、文献、学习空间',url:'https://www.ucl.ac.uk/library/'},{name:'UCL Students',description:'学生支持、学业与校园事务',url:'https://www.ucl.ac.uk/students/'},{name:'UCL API',description:'学生开发者平台与校园数据接口',url:'https://uclapi.com/'}];
 async function callTool(name,args={}){
@@ -96,17 +97,37 @@ async function action(method,args={}){
   state.config={...state.config,model,...options,modelContextWindow:metadata?.contextWindow||options.modelContextWindow};save();return visibleState().config;
  }
  if(method==='state')return visibleState();
+ if(method==='homePhoto'){if(!state.homePhoto)return null;try{return {data:photoData(path.join(home,'home-photo')).data,...state.homePhoto}}catch{return null}}
+ if(method==='selectHomePhoto'){
+  const selected=await dialog.showOpenDialog(win,{title:'选择主页照片',properties:['openFile'],filters:[{name:'照片',extensions:['png','jpg','jpeg','webp']}]});if(selected.canceled)return null;
+  const file=selected.filePaths[0],photo=photoData(file),temp=path.join(home,'home-photo.tmp');fs.writeFileSync(temp,photo.bytes,{mode:0o600});fs.renameSync(temp,path.join(home,'home-photo'));state.homePhoto={name:path.basename(file),position:50};save();return {...state.homePhoto,data:photo.data};
+ }
+ if(method==='positionHomePhoto'){if(!state.homePhoto)throw Error('请先选择主页照片');state.homePhoto.position=photoPosition(args.position);save();return state.homePhoto}
+ if(method==='resetHomePhoto'){delete state.homePhoto;save();fs.rmSync(path.join(home,'home-photo'),{force:true});return true}
  if(method==='setAppearance')return setAppearance(args);
  if(method==='status')return rpc('local_status');
  if(method==='login'){const r=await rpc('login');if(!r.ok)throw Error('未完成登录。学校可能未开启移动服务，或登录已超时。');return r}
  if(method==='logout'){stopWorker();await rpc('logout');state.cache={};save();return {ok:true}}
  if(method==='refresh'){const result=await Promise.allSettled([rpc('courses'),rpc('deadlines')]);const errors=[];result.forEach((r,i)=>{const k=i?'deadlines':'courses';if(r.status==='fulfilled')state.cache[k]={data:r.value,at:Date.now()};else errors.push(r.reason.message)});save();return {...visibleState(),errors:[...new Set(errors)]}}
- if(method==='browse')return rpc('browse',{course:String(args.course)});
- if(method==='download'){const r=await rpc('download',{url:String(args.url),name:String(args.name)});return r}
- if(method==='import'){const r=await dialog.showOpenDialog(win,{properties:['openFile','multiSelections'],filters:[{name:'学习资料',extensions:['pdf','txt','md','csv']}]});if(r.canceled)return [];for(const f of r.filePaths){let name=path.basename(f),dest=path.join(library,name);if(fs.existsSync(dest))dest=path.join(library,Date.now()+'-'+name);fs.copyFileSync(f,dest,fs.constants.COPYFILE_EXCL)}return files()}
+ if(method==='browse')return rpc('browse',{course:String(args.course),rich:true});
+ if(method==='courseImage')return rpc('course_image',{url:String(args.url)});
+ if(method==='organizeLibrary')return rpc('organize_downloads');
+ if(method==='classifyFile'){
+  const source=fs.realpathSync(String(args.path));if(!inside(library,source)||!fs.statSync(source).isFile())throw Error('仅能归档资料库中的文件');
+  const course=args.courseId?(state.cache.courses?.data||[]).find(c=>String(c.id)===String(args.courseId)):null;if(args.courseId&&!course)throw Error('课程不存在，请重新同步');
+  const folder=course?path.join(library,'Moodle',(course.id+' · '+course.name).replace(/[<>:"/\\|?*\x00-\x1f]/g,'_').trim().slice(0,64).replace(/[ .]+$/,''),'手动归档'):path.join(library,'Personal');
+  fs.mkdirSync(folder,{recursive:true});const resolvedFolder=fs.realpathSync(folder);if(!inside(library,resolvedFolder))throw Error('目标目录超出资料库');
+  let dest=path.join(resolvedFolder,path.basename(source));if(source===dest)return true;if(fs.existsSync(dest))dest=path.join(resolvedFolder,crypto.randomUUID().slice(0,8)+'-'+path.basename(source));if(!inside(library,path.resolve(dest)))throw Error('目标目录超出资料库');
+  // Both resolved paths are inside the intended library before this Windows move.
+  fs.renameSync(source,dest);
+  const manifest=path.join(connectorHome,'download-records.json');let records={};try{records=JSON.parse(fs.readFileSync(manifest,'utf8'))}catch{}
+  const previous=records[path.relative(library,source)]||{};delete records[path.relative(library,source)];records[path.relative(library,dest)]={...previous,name:previous.name||path.basename(source),course:course?.name||'个人资料',section:course?'手动归档':'',activity:''};const temp=manifest+'.tmp';fs.writeFileSync(temp,JSON.stringify(records),{mode:0o600});fs.renameSync(temp,manifest);return true;
+ }
+ if(method==='download'){const r=await rpc('download',{url:String(args.url),name:String(args.name),courseId:args.courseId,moduleId:args.moduleId});return r}
+ if(method==='import'){const r=await dialog.showOpenDialog(win,{properties:['openFile','multiSelections'],filters:[{name:'学习资料',extensions:['pdf','txt','md','csv']}]});if(r.canceled)return [];for(const f of r.filePaths){const group=args.courseId?(state.cache.courses?.data||[]).find(c=>String(c.id)===String(args.courseId)):null;if(args.courseId&&!group)throw Error('课程不存在，请重新同步');const folder=group?path.join(library,'Moodle',(group.id+' · '+group.name).replace(/[<>:"/\\|?*\x00-\x1f]/g,'_').trim().slice(0,64).replace(/[ .]+$/,''),'导入资料'):path.join(library,'Personal');if(!inside(library,folder))throw Error('资料目录无效');fs.mkdirSync(folder,{recursive:true});let name=path.basename(f),dest=path.join(folder,name);if(fs.existsSync(dest))dest=path.join(folder,Date.now()+'-'+name);fs.copyFileSync(f,dest,fs.constants.COPYFILE_EXCL)}return files()}
  if(method==='openFile'){const p=fs.realpathSync(String(args.path));if(!inside(library,p))throw Error('仅能打开资料库文件');shell.showItemInFolder(p);return true}
  if(method==='openLink'){await shell.openExternal(safeLink(String(args.url)));return true}
- if(method==='searchLibrary')return rpc('search_library',{query:String(args.query||''),rebuild:args.rebuild===true});
+ if(method==='searchLibrary')return rpc('search_library',{query:String(args.query||''),rebuild:args.rebuild===true,scope:String(args.scope||'')});
  if(method==='services')return services;
  if(method==='addTodo')return callTool('add_todo',args);
  if(method==='toggleTodo'){const t=state.todos.find(x=>x.id===args.id);if(t)t.done=!t.done;save();return state.todos}

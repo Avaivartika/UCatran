@@ -5,10 +5,10 @@ body{background:var(--paper) url('assets/paper-grain.svg') repeat;color:var(--in
 aside{width:180px;top:35px;padding:22px 12px 14px;background:#e8ecdf url('assets/paper-grain.svg') repeat;border-color:var(--line);overflow:hidden;gap:16px}
 .brand{margin:0 4px 4px;gap:8px;font-size:20px;letter-spacing:-.6px;flex-shrink:0;color:var(--ink)}
 .brand .logo{width:25px;height:32px;flex-shrink:0;color:#31462e}.brand .logo:before{font-size:27px}.brand small{font-size:10px;letter-spacing:.4px;margin-top:7px;color:var(--muted)}
-nav{display:flex;flex-direction:column;gap:4px;min-height:0;overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:#bcc8ac transparent;padding:0 2px}
-nav:before{content:'学习空间';padding:7px 12px;font-size:10px;letter-spacing:2px;color:#818c71;flex-shrink:0}
-nav button{flex-shrink:0;min-height:39px;padding:9px 12px;border-radius:7px;color:#69745a;gap:8px;font-size:13px}nav button span:first-child{width:19px;font-size:17px}nav button:last-child{margin-top:10px}
-nav button.active{background:#cdd6c0;color:#2a3022;box-shadow:none}nav button:hover{background:#d5dcca}.sidebar-bottom{display:block;flex-shrink:0;margin-top:0;border-top:1px solid var(--line);padding:12px 5px 0;font-size:10px;line-height:1.7;color:#707b60}.sidebar-bottom p{font-size:9px;margin:6px 0 0}.dot{width:6px;height:6px;margin-right:6px}
+aside nav{display:flex;flex-direction:column;gap:4px;min-height:0;overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:#bcc8ac transparent;padding:0 2px}
+aside nav:before{content:'学习空间';padding:7px 12px;font-size:10px;letter-spacing:2px;color:#818c71;flex-shrink:0}
+aside nav button{flex-shrink:0;min-height:39px;padding:9px 12px;border-radius:7px;color:#69745a;gap:8px;font-size:13px}aside nav button span:first-child{width:19px;font-size:17px}aside nav button:last-child{margin-top:10px}
+aside nav button.active{background:#cdd6c0;color:#2a3022;box-shadow:none}aside nav button:hover{background:#d5dcca}.sidebar-bottom{display:block;flex-shrink:0;margin-top:0;border-top:1px solid var(--line);padding:12px 5px 0;font-size:10px;line-height:1.7;color:#707b60}.sidebar-bottom p{font-size:9px;margin:6px 0 0}.dot{width:6px;height:6px;margin-right:6px}
 main{position:relative;z-index:1;margin:35px 0 0 180px;padding:24px 28px 30px;max-width:none}aside{z-index:2}header,#page,#notice{max-width:1180px;margin-left:auto;margin-right:auto}header{padding-bottom:15px;margin-bottom:18px;border-color:var(--line)}#eyebrow{color:#7d8a6b;letter-spacing:1.4px;font-size:9px}h1{font-size:23px;color:var(--ink)}h2,h3{color:var(--ink)}
 button{background:#ecf0e7;border-color:#c8d2ba;color:#414a35;border-radius:8px}button:hover{background:#d6decc;border-color:#9baa86}button.primary{background:#31462e;border-color:#31462e;color:#f2f4ef}button.primary:hover{background:#4d583e}button:focus-visible{outline-color:#68794f}#demo{color:#64754c;background:#d2dac6;border-radius:6px}
 .hero{display:block;min-height:0;background:transparent;border:0;border-radius:0;padding:16px 0 27px;margin-bottom:20px;box-shadow:none;filter:none;overflow:visible}.hero:before{display:none}.hero-copy{padding:0;max-width:none;display:block}.hero small{color:#7a8a64;background:none;border:0;border-radius:0;padding:0;font-size:11px;letter-spacing:2px;backdrop-filter:none}.hero h2{font-size:clamp(25px,3vw,40px);line-height:1.5;font-weight:400;letter-spacing:2px;max-width:none;color:#343c28;margin:14px 0 23px;text-shadow:none;text-wrap:balance}.hero .row button{background:#e7ece1;color:#445034;border:1px solid #c3ceb3;border-radius:7px;padding:9px 14px;min-height:35px;backdrop-filter:none;font-size:12px}.hero .row button.primary{background:#31462e;color:#f2f4ef;border-color:#31462e}.hero .row button:hover{background:#cfd8c3;color:#343c28}
@@ -16,8 +16,8 @@ button{background:#ecf0e7;border-color:#c8d2ba;color:#414a35;border-radius:8px}b
 .chat-layout{max-width:880px;min-height:calc(100vh - 170px)}.chat-layout:has(.chat-intro){min-height:0}.chat-intro{padding:22px 12px 24px}.chat-intro>.logo{color:#606c4e;font-size:46px;height:58px}.chat-intro h2{font-size:31px;color:#3c462d;letter-spacing:5px;margin:7px 0 12px}.chat-intro .muted{color:#758362}.prompts{margin-top:23px}.prompts button{background:#e5eadf;border:1px solid #c8d2b9}.bubble{background:#ecf0e7;border-color:#cdd6c0}.bubble.user{background:#d3dbc7;border-color:#bfcaaf}.bubble .speaker,.trace{color:#66774f}.composer{background:#e9ede4 url('assets/paper-grain.svg');border-color:#b9c6a7;border-radius:12px;box-shadow:0 3px 12px #424d3208;margin-top:8px}.composer-footer small{color:#7c8b66}input:focus,textarea:focus{border-color:#8c9f72;box-shadow:0 0 0 3px #9fb08720}
 #page-flora{position:fixed;right:-18px;bottom:-38px;width:290px;height:470px;max-height:75vh;object-fit:contain;pointer-events:none;user-select:none;z-index:0;opacity:.16;filter:sepia(.75) saturate(.4);animation:none;transition:none}
 @media(max-width:1050px){main{padding:22px}.columns{grid-template-columns:1fr}.board{grid-template-columns:1fr}}
-@media(max-width:850px){aside{width:164px;padding:20px 10px 12px}.brand{font-size:18px}.brand>div,.brand small,nav button .label{display:block}nav:before{display:block}.brand .logo{margin:0}.brand{margin:0 3px 4px}nav button{justify-content:flex-start;padding:9px 10px}nav button span:first-child{width:19px}.sidebar-bottom{display:block}main{margin-left:164px;padding:20px}.hero h2{font-size:27px;letter-spacing:1px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}#page-flora{width:210px;height:350px;opacity:.12}}
-@media(max-width:600px){aside{width:64px;padding:16px 8px}.brand>div,nav button .label,nav:before,.sidebar-bottom{display:none}.brand{justify-content:center}nav button{justify-content:center;padding:10px 5px}main{margin-left:64px;padding:16px}.hero h2{font-size:24px}.grid{grid-template-columns:1fr}.header-actions{flex-wrap:wrap}.hero .row{gap:7px}}
+@media(max-width:850px){aside{width:164px;padding:20px 10px 12px}.brand{font-size:18px}.brand>div,.brand small,aside nav button .label{display:block}aside nav:before{display:block}.brand .logo{margin:0}.brand{margin:0 3px 4px}aside nav button{justify-content:flex-start;padding:9px 10px}aside nav button span:first-child{width:19px}.sidebar-bottom{display:block}main{margin-left:164px;padding:20px}.hero h2{font-size:27px;letter-spacing:1px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}#page-flora{width:210px;height:350px;opacity:.12}}
+@media(max-width:600px){aside{width:64px;padding:16px 8px}.brand>div,aside nav button .label,aside nav:before,.sidebar-bottom{display:none}.brand{justify-content:center}aside nav button{justify-content:center;padding:10px 5px}main{margin-left:64px;padding:16px}.hero h2{font-size:24px}.grid{grid-template-columns:1fr}.header-actions{flex-wrap:wrap}.hero .row{gap:7px}}
 html{min-height:100%;background:var(--paper) url('assets/paper-grain.svg') repeat}body{min-height:100vh}.task-form input{border-color:#c8d2b9;border-radius:8px}
 
 /* Daylight crosses the same sage surface on every page. */
@@ -54,8 +54,8 @@ h1{font-size:26px;font-weight:600}
 h2,h3,.panel h2,.course h3{font-weight:600}
 .panel h2{font-size:17px}
 .brand{font-weight:600}.brand small{font-size:11px;font-weight:400}
-nav button{font-size:15px;line-height:1.5}nav button.active{font-weight:700}
-nav:before{font-size:11px}
+aside nav button{font-size:15px;line-height:1.5}aside nav button.active{font-weight:700}
+aside nav:before{font-size:11px}
 button,.hero .row button{font-size:14px;line-height:1.5}
 button.primary{font-weight:600}
 button.small,.header-actions button,.prompts button{font-size:13px}
@@ -73,5 +73,5 @@ input,textarea,.settings input[type=text],.settings input[type=password],.compos
 .chapter{font-size:12px;font-weight:600}
 #eyebrow,.home-footer,.footer-note,.sidebar-bottom{font-size:11px}
 .sidebar-bottom p{font-size:10px}.hero h2{font-weight:400}
-@media(max-width:850px){nav button{font-size:14px}.header-actions button{font-size:13px}.hero .row button{font-size:13px}}
+@media(max-width:850px){aside nav button{font-size:14px}.header-actions button{font-size:13px}.hero .row button{font-size:13px}}
 .codex-connect{padding:0 0 16px;border-bottom:1px solid var(--line);margin-bottom:18px}.codex-connect .hint{margin-bottom:0}.settings select{font:inherit;font-size:14px;color:var(--ink);width:100%;padding:12px;border:1px solid #bac5ab;border-radius:8px;background:#eef2e5}.settings input:disabled{opacity:.65;cursor:default}

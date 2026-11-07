@@ -7,8 +7,8 @@ html[data-theme=yellow]{--sun-shadow:109,94,62;--sunlight-rgb:255,247,222;--sunl
 [data-theme=yellow] aside{background-color:#f2e8d1;border-color:#cac5b9;background-image:linear-gradient(150deg,rgba(255,253,244,.30),transparent 67%),url('assets/mineral-surface.svg')}
 [data-theme=yellow] .brand,[data-theme=yellow] h1,[data-theme=yellow] h2,[data-theme=yellow] h3{color:#454238}
 [data-theme=yellow] .brand .logo,[data-theme=yellow] .chat-intro>.logo{color:#6a634f}
-[data-theme=yellow] .brand small,[data-theme=yellow] nav:before,[data-theme=yellow] #eyebrow,[data-theme=yellow] .sidebar-bottom{color:#7d786b}
-[data-theme=yellow] nav button{color:#69655a}[data-theme=yellow] nav button.active{background:#e3d4b1;color:#454238}[data-theme=yellow] nav button:hover{background:#ebdfc3}
+[data-theme=yellow] .brand small,[data-theme=yellow] aside nav:before,[data-theme=yellow] #eyebrow,[data-theme=yellow] .sidebar-bottom{color:#7d786b}
+[data-theme=yellow] aside nav button{color:#69655a}[data-theme=yellow] aside nav button.active{background:#e3d4b1;color:#454238}[data-theme=yellow] aside nav button:hover{background:#ebdfc3}
 [data-theme=yellow] header,[data-theme=yellow] .sidebar-bottom,[data-theme=yellow] .chapter,[data-theme=yellow] .home-footer{border-color:#b5af9f70}
 [data-theme=yellow] button{background:#f3e9d2;color:#524d3f;border-color:#bab5a870}[data-theme=yellow] button:hover{background:#d8d3c5;border-color:#9f9988}
 [data-theme=yellow] button.primary{background:#716954;border-color:#716954;color:#f2efe6}[data-theme=yellow] button.primary:hover{background:#766e59}
@@ -29,7 +29,7 @@ html[data-theme=yellow]{--sun-shadow:109,94,62;--sunlight-rgb:255,247,222;--sunl
 [data-theme=yellow] #page-flora{filter:sepia(.85) saturate(.6);opacity:.14}
 @media(max-width:1050px){.pet-options{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){.pet-choice img{animation:none}}
-[data-theme=yellow] nav button{background:transparent;border:0}[data-theme=yellow] nav button.active{background:#e3d4b1}[data-theme=yellow] nav button:hover{background:#ebdfc3}.pet-choice img{object-fit:contain;height:84px}
+[data-theme=yellow] aside nav button{background:transparent;border:0}[data-theme=yellow] aside nav button.active{background:#e3d4b1}[data-theme=yellow] aside nav button:hover{background:#ebdfc3}.pet-choice img{object-fit:contain;height:84px}
 
 /* Shared UCatran identity across both palettes. */
 .brand .logo.app-brand{width:38px;height:38px;background:none;border-radius:0;font-size:0;flex-shrink:0}.brand .logo.app-brand::before{content:none}.app-brand img{display:block;width:100%;height:100%;object-fit:contain}
@@ -75,8 +75,8 @@ html[data-theme=pink]{--sun-shadow:117,76,99;--sunlight-rgb:255,241,247;--sunlig
 [data-theme=pink] aside{background-color:#f8edf0;border-color:#d5c1cb;background-image:linear-gradient(150deg,rgba(255,253,244,.30),transparent 67%),url('assets/mineral-surface.svg')}
 [data-theme=pink] .brand,[data-theme=pink] h1,[data-theme=pink] h2,[data-theme=pink] h3{color:#493d45}
 [data-theme=pink] .brand .logo,[data-theme=pink] .chat-intro>.logo{color:#6a634f}
-[data-theme=pink] .brand small,[data-theme=pink] nav:before,[data-theme=pink] #eyebrow,[data-theme=pink] .sidebar-bottom{color:#887681}
-[data-theme=pink] nav button{color:#735b6a}[data-theme=pink] nav button.active{background:#e8cbd8;color:#493d45}[data-theme=pink] nav button:hover{background:#eedbe4}
+[data-theme=pink] .brand small,[data-theme=pink] aside nav:before,[data-theme=pink] #eyebrow,[data-theme=pink] .sidebar-bottom{color:#887681}
+[data-theme=pink] aside nav button{color:#735b6a}[data-theme=pink] aside nav button.active{background:#e8cbd8;color:#493d45}[data-theme=pink] aside nav button:hover{background:#eedbe4}
 [data-theme=pink] header,[data-theme=pink] .sidebar-bottom,[data-theme=pink] .chapter,[data-theme=pink] .home-footer{border-color:#b5af9f70}
 [data-theme=pink] button{background:#f9eef2;color:#604b57;border-color:#bab5a870}[data-theme=pink] button:hover{background:#ead5e0;border-color:#9f9988}
 [data-theme=pink] button.primary{background:#886575;border-color:#886575;color:#fff7fa}[data-theme=pink] button.primary:hover{background:#795666}
@@ -95,5 +95,5 @@ html[data-theme=pink]{--sun-shadow:117,76,99;--sunlight-rgb:255,241,247;--sunlig
 [data-theme=pink] input:focus,[data-theme=pink] textarea:focus{border-color:#8a826c;box-shadow:0 0 0 3px #ada58e20}[data-theme=pink] button:focus-visible{outline-color:#8a826c}[data-theme=pink] .check{accent-color:#886575}
 [data-theme=pink] .theme-choice,[data-theme=pink] .pet-choice{background:#fff2f655}[data-theme=pink] .theme-choice[aria-pressed=true],[data-theme=pink] .pet-choice[aria-pressed=true]{border-color:#9c7187;box-shadow:0 0 0 1px #9c7187}
 [data-theme=pink] #page-flora{filter:sepia(.45) hue-rotate(280deg) saturate(.55);opacity:.14}
-[data-theme=pink] nav button{background:transparent;border:0}[data-theme=pink] nav button.active{background:#e8cbd8}[data-theme=pink] nav button:hover{background:#eedbe4}.pet-choice img{object-fit:contain;height:84px}
+[data-theme=pink] aside nav button{background:transparent;border:0}[data-theme=pink] aside nav button.active{background:#e8cbd8}[data-theme=pink] aside nav button:hover{background:#eedbe4}.pet-choice img{object-fit:contain;height:84px}
 .theme-swatch.pink{background:#eac4d6}
