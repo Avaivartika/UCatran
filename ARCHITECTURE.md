@@ -17,6 +17,28 @@ Pi Agent → desktop/agent/tools.mjs → host dispatch → Python Moodle bridge 
 
 ## Course presentation and local assets (0.9)
 
+## Task discovery and explanation (0.10)
+
+`scripts/task_board.py` merges every enrolled course's visible activities with
+completion information, native assignment/quiz/choice endpoints, full calendar,
+action-calendar pagination and course-group membership. Batch failures are retried
+per course. API-only activities and undated completion-tracked items are retained.
+Coverage errors are explicit and failed-course snapshots retain prior known tasks.
+No claim is made to see activities that the university does not expose to the account.
+
+`desktop/task-index.cjs` supplies explicit continuation cursors to agent tools for
+the complete task inventory, requirements and material directory. `task-service.cjs`
+uses a separate model context, bounded evidenced excerpts and the current configured
+provider with existing consent; it never reuses unrelated chats. Credential/config
+snapshots are taken before reading documents. Summaries carry source/revision metadata.
+
+ZIP exports contain original requirements, selected material files, source links,
+hashes and per-file availability. Generation stays inside a private connector cache;
+the host copies only the validated generated archive to the native save-dialog target.
+Unavailable resources are recorded rather than silently omitted or represented as read.
+
+## Course presentation and local assets (0.9)
+
 Course covers and supported embedded raster images are fetched by the authenticated
 Python connector, restricted to the current Moodle file host, limited to 5 MB,
 checked for raster signatures and cached outside the library. Only image data

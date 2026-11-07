@@ -1,0 +1,15 @@
+/* System UI fonts and readable ink across all palettes. */
+:root,[data-theme=green]{--ink:#202b22;--muted:#46513f;--accent:#2c4d32}
+[data-theme=pink]{--ink:#30242b;--muted:#604b57;--accent:#754358}
+[data-theme=yellow]{--ink:#312b22;--muted:#5e5140;--accent:#68533b}
+html,body,body *{font-family:system-ui,-apple-system,'Segoe UI','Microsoft YaHei UI','Microsoft YaHei',sans-serif!important}
+body{font-size:15px;font-weight:400;color:var(--ink)!important;-webkit-font-smoothing:auto}
+[data-theme] h1,[data-theme] h2,[data-theme] h3,[data-theme] h4,[data-theme] .brand,[data-theme] .settings label,[data-theme] .course-rich,[data-theme] .course-module,[data-theme] .library-file-row,[data-theme] .bubble{color:var(--ink)!important}
+h1,h2,h3,h4{font-weight:600!important}h1{font-size:28px}.brand{font-weight:600}.hero h2{font-weight:500!important}
+[data-theme] .muted,[data-theme] .hint,[data-theme] small,[data-theme] .source-note,[data-theme] .footer-note,[data-theme] .chapter,[data-theme] .home-footer,[data-theme] .sidebar-bottom,[data-theme] #eyebrow,[data-theme] .composer-footer small,[data-theme] .task-board-note,[data-theme] .task-ai-sources,[data-theme] .library-file-path,[data-theme] .course-card-summary{color:var(--muted)!important}
+[data-theme] .hint,[data-theme] .source-note,[data-theme] .composer-footer small{font-size:13px;line-height:1.8}
+[data-theme] aside nav button{font-weight:500;color:var(--ink)}[data-theme] button{font-weight:500}[data-theme] .bubble{font-size:15px;line-height:1.9}[data-theme] .bubble .speaker{font-size:12px;color:var(--muted)}[data-theme] .composer textarea{font-size:15px}
+[data-theme] input,[data-theme] textarea,[data-theme] select{color:var(--ink)}input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
+[data-theme] .hero h2,[data-theme] .hero small,[data-theme] .course-detail-hero h2,[data-theme] .course-detail-hero small,[data-theme] .course-detail-hero p{color:#fff!important}.hero .row button{font-weight:600}.course-cover-code{font-weight:600}
+.task-note .task-description,.task-note .task-work-status{color:var(--ink)!important}.task-note .task-explain{color:#fff!important}.task-note .task-error,.task-coverage .task-error{color:#962a38!important}
+.markdown pre,.markdown code{font-family:Consolas,'Cascadia Code',monospace!important}

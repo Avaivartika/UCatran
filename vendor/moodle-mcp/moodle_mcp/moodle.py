@@ -112,15 +112,15 @@ class Moodle:
         """Sections, each with its activity modules and any files they hold."""
         return self.call("core_course_get_contents", courseid=courseid)
 
-    def upcoming(self, limit: int = 20) -> list[dict]:
+    def upcoming(self, limit: int | None = 20) -> list[dict]:
         """Calendar action events, paginated within Moodle's 50-item page limit."""
         import time
-        if isinstance(limit, bool) or not isinstance(limit, int) or limit < 1:
+        if limit is not None and (isinstance(limit, bool) or not isinstance(limit, int) or limit < 1):
             raise ValueError("Event limit must be a positive integer")
         events, seen = [], set()
         start, cursor = int(time.time()), 0
-        while len(events) < limit:
-            page_size = min(50, limit - len(events))
+        while limit is None or len(events) < limit:
+            page_size = 50 if limit is None else min(50, limit - len(events))
             res = self.call(
                 "core_calendar_get_action_events_by_timesort",
                 timesortfrom=start, aftereventid=cursor, limitnum=page_size,
@@ -140,7 +140,7 @@ class Moodle:
             cursor = page[-1]["id"]
             if len(page) < page_size:
                 break
-        return events[:limit]
+        return events if limit is None else events[:limit]
 
     def file_url(self, url: str) -> str:
         """Add the token to a pluginfile.php URL so the file can be downloaded."""

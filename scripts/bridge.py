@@ -7,6 +7,7 @@ from moodle_mcp.moodle import Moodle, MoodleError, LoginRequired
 from moodle_mcp.auth import browser_login
 from bs4 import BeautifulSoup
 from course_catalog import rich_content, course_image_url, public_url, image_data, download_resource, organize_downloads
+from task_board import scan_tasks, task_details, task_context, export_task
 s = load_settings()
 s.home.mkdir(parents=True, exist_ok=True, mode=0o700)
 if os.name != 'nt': os.chmod(s.home, 0o700)
@@ -44,8 +45,11 @@ def run(method, args):
         if method == 'course_image': return image_data(mo, args.get('url',''))
         if method == 'organize_downloads': return organize_downloads(mo)
         if method == 'courses': return [{'id':c['id'],'name':c['fullname'],'shortname':c['shortname'],'url':f"{s.base_url}/course/view.php?id={c['id']}", 'image':course_image_url(c,s.base_url),'summary':clean(c.get('summary'))[:400], 'progress':c.get('progress'), 'lastAccess':c.get('lastaccess',0), 'startDate':c.get('startdate')} for c in mo.courses()]
-        if method == 'deadlines':
-            return [{'id':e['id'],'name':e.get('name'),'course':(e.get('course') or {}).get('fullname',''), 'timestamp':e.get('timesort') or e.get('timestart'), 'url':e.get('url'), 'description':clean(e.get('description'))[:1200]} for e in mo.upcoming(100)]
+        if method == 'tasks': return scan_tasks(mo,progress)
+        if method == 'deadlines': return scan_tasks(mo,progress)['tasks']
+        if method == 'task_details': return task_details(mo,str(args['id']))
+        if method == 'task_context': return task_context(mo,str(args['id']),args.get('materialIds'),args.get('maxChars',20000),progress)
+        if method == 'task_export': return export_task(mo,str(args['id']),args.get('materialIds'),str(args.get('explanation','')),progress)
         if method == 'browse':
             c = mo.find_course(str(args['course']))
             sections = []
@@ -67,6 +71,9 @@ def run(method, args):
             return download_resource(mo,args)
         raise ValueError('不支持的连接器工具')
     finally: mo._client.close()
+
+def progress(**value):
+    print(json.dumps({'id':req['id'],'progress':value},ensure_ascii=False),flush=True)
 
 for line in sys.stdin:
     try:

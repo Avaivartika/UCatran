@@ -30,6 +30,17 @@ class ConnectorTests(unittest.TestCase):
             with self.assertRaises(MoodleError): m.upcoming(100)
         finally: m._client.close()
 
+    def test_calendar_unlimited_follows_every_page(self):
+        from unittest.mock import Mock
+        m=Moodle(Settings(base_url='https://moodle.ucl.ac.uk'),token='secret')
+        try:
+            events=[{'id':i} for i in range(150)]
+            m.call=Mock(side_effect=[{'events':events[:50]},{'events':events[50:100]},{'events':events[100:]},{'events':[]}])
+            self.assertEqual(m.upcoming(None),events)
+            self.assertEqual(m.call.call_count,4)
+            self.assertTrue(all(c.kwargs['limitnum']==50 for c in m.call.call_args_list))
+        finally: m._client.close()
+
     def test_rejects_cross_site_token(self):
         with tempfile.TemporaryDirectory() as d:
             settings=Settings(base_url='https://moodle.ucl.ac.uk',home=Path(d))
