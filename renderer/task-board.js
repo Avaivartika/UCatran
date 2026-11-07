@@ -8,7 +8,17 @@ function isUpcomingDeadline(task, now=Date.now()/1000){
  return isCourseDeadline(task)&&task.timestamp>=now&&!task.completed;
 }
 function taskNote(task){
- const card=el('article','task-note'),image=el('div','task-note-image'),body=el('div','task-note-body');image.setAttribute('aria-label',task.course+'课程图片');card.append(image,body);const course=(state.cache.courses?.data||[]).find(c=>String(c.id)===String(task.courseId));
+ const card=el('article','task-note');
+ const paper=el('div','task-note-paper'),image=el('div','task-note-image'),body=el('div','task-note-body');
+ const course=(state.cache.courses?.data||[]).find(c=>String(c.id)===String(task.courseId));
+ const identity=String(task.courseId||task.course||'');
+ const palette=['butter','sage','blush','lilac'];
+ const colorIndex=Array.from(identity).reduce((sum,char)=>sum+char.codePointAt(0),0)%palette.length;
+ card.dataset.paper=palette[colorIndex];
+ const portrait=el('div','task-note-portrait');
+ portrait.append(image);
+ paper.append(portrait,body);
+ card.append(paper);
  const meta=el('div','task-note-meta');meta.append(el('span','task-course',task.course),el('span','task-kind',taskTypeNames[task.type]||'课程活动'));body.append(meta,el('h2','task-name',task.name));
  const excerpts=(task.briefEvidence||[]).flatMap(source=>source.lines.map(line=>({...line,source:source.name})));
  const mainExcerpt=excerpts.find(line=>/word limit|word count|字数|\bsubmit\b/i.test(line.text))||excerpts[0];
@@ -26,10 +36,10 @@ function taskNote(task){
  dateRow.append(due);
  if(task.completed)dateRow.append(el('span','task-status','课程标记已完成'));
  if(task.stale)dateRow.append(el('span','task-stale','缓存任务 · 本次未完整读取'));
- body.append(dateRow);
- const actions=el('div','row task-actions'),details=el('details','task-details'),detailLabel=el('summary','','任务要求与资料'),detailBody=el('div','task-detail-content'),status=el('p','task-work-status');status.setAttribute('role','status');details.append(detailLabel,detailBody);card.append(details,status);
+ body.insertBefore(dateRow,body.children[2]||null);
+ const actions=el('div','row task-actions'),details=el('details','task-details'),detailLabel=el('summary','','任务要求与资料'),detailBody=el('div','task-detail-content'),status=el('p','task-work-status');status.setAttribute('role','status');details.append(detailLabel,detailBody);card.append(actions,details,status);
  const explain=btn('✦ 生成任务讲解',()=>generate(),'small task-explain'),exportButton=btn('导出任务资料 ZIP',()=>exportBundle(),'small'),stop=btn('停止',()=>api('cancelTask',{id:task.id}),'ghost small');stop.hidden=true;
- actions.append(explain,exportButton,stop);if(task.url)actions.append(btn('原任务 ↗',()=>api('openLink',{url:task.url}),'ghost small'));body.append(actions);
+ actions.append(explain,exportButton,stop);if(task.url)actions.append(btn('原任务 ↗',()=>api('openLink',{url:task.url}),'ghost small'));
  const ai=el('details','task-ai');
  const aiToggle=el('summary','','展开 AI 任务讲解');
  const aiMeta=el('p','hint'),aiText=el('div','markdown'),aiSources=el('p','task-ai-sources');
@@ -80,8 +90,9 @@ function deadlines(){
  const tasks=records.filter(task=>isCourseDeadline(task)||task.category==='action');
  const upcoming=tasks.filter(task=>isUpcomingDeadline(task)).length;
  const summary=el('div','task-board-intro');
- summary.append(el('h2','','课程截止日期'),el('p','',upcoming+' 项即将截止'));
- page.append(summary,source('deadlines'));
+ $('#title').textContent='截止便签';
+ summary.append(el('p','task-board-tally',upcoming+' 项即将截止'),source('deadlines'));
+ page.append(summary);
  const audit=el('details','task-coverage');
  const courses=coverage?.data||[];
  const issues=(coverage?.warnings||[]).length+courses.reduce((n,c)=>n+(c.ok?0:1)+(c.warnings?.length||0),0);

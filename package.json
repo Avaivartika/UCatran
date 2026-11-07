@@ -1,7 +1,7 @@
 {
   "name": "ucl-study-desktop",
   "productName": "UCatran",
-  "version": "0.10.2",
+  "version": "0.10.3",
   "description": "Independent local desktop study agent for UCL Moodle",
   "author": "Catwarrior · Futuoran",
   "private": true,
