@@ -113,14 +113,34 @@ class Moodle:
         return self.call("core_course_get_contents", courseid=courseid)
 
     def upcoming(self, limit: int = 20) -> list[dict]:
-        """Calendar action events (assignments, quizzes…) due from now on."""
+        """Calendar action events, paginated within Moodle's 50-item page limit."""
         import time
-        res = self.call(
-            "core_calendar_get_action_events_by_timesort",
-            timesortfrom=int(time.time()),
-            limitnum=limit,
-        )
-        return (res or {}).get("events", [])
+        if isinstance(limit, bool) or not isinstance(limit, int) or limit < 1:
+            raise ValueError("Event limit must be a positive integer")
+        events, seen = [], set()
+        start, cursor = int(time.time()), 0
+        while len(events) < limit:
+            page_size = min(50, limit - len(events))
+            res = self.call(
+                "core_calendar_get_action_events_by_timesort",
+                timesortfrom=start, aftereventid=cursor, limitnum=page_size,
+            )
+            page = (res or {}).get("events", [])
+            if not page:
+                break
+            fresh = [event for event in page if event["id"] not in seen]
+            if not fresh:
+                raise MoodleError("Calendar pagination did not advance; please retry sync")
+            for event in fresh:
+                if event["id"] not in seen:
+                    seen.add(event["id"])
+                    events.append(event)
+            # Moodle's cursor is the last event, not a timestamp offset. This
+            # preserves events with equal deadlines and non-monotonic IDs.
+            cursor = page[-1]["id"]
+            if len(page) < page_size:
+                break
+        return events[:limit]
 
     def file_url(self, url: str) -> str:
         """Add the token to a pluginfile.php URL so the file can be downloaded."""

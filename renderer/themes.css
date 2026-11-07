@@ -67,3 +67,33 @@ body:has(.chat-layout){display:flow-root}
 .composer-footer .primary{margin-left:auto}
 
 #notice:not(:empty){position:sticky;top:45px;z-index:15}
+
+/* Pale rose palette, including settings, agent dialogs and library controls. */
+html[data-theme=pink]{--sun-shadow:117,76,99;--sunlight-rgb:255,241,247;--sunlight-edge:255,244,249;--accent:#886575;--muted:#887681;--line:#d5c1cb;--ink:#493d45;--paper:#f4e6eb;background:#f4e6eb;color:var(--ink)}
+[data-theme=pink] body{background-color:#f4e6eb;color:var(--ink)}
+[data-theme=pink] .titlebar{background:#efdee5;border-color:#d5c1cb}
+[data-theme=pink] aside{background-color:#f8edf0;border-color:#d5c1cb;background-image:linear-gradient(150deg,rgba(255,253,244,.30),transparent 67%),url('assets/mineral-surface.svg')}
+[data-theme=pink] .brand,[data-theme=pink] h1,[data-theme=pink] h2,[data-theme=pink] h3{color:#493d45}
+[data-theme=pink] .brand .logo,[data-theme=pink] .chat-intro>.logo{color:#6a634f}
+[data-theme=pink] .brand small,[data-theme=pink] nav:before,[data-theme=pink] #eyebrow,[data-theme=pink] .sidebar-bottom{color:#887681}
+[data-theme=pink] nav button{color:#735b6a}[data-theme=pink] nav button.active{background:#e8cbd8;color:#493d45}[data-theme=pink] nav button:hover{background:#eedbe4}
+[data-theme=pink] header,[data-theme=pink] .sidebar-bottom,[data-theme=pink] .chapter,[data-theme=pink] .home-footer{border-color:#b5af9f70}
+[data-theme=pink] button{background:#f9eef2;color:#604b57;border-color:#bab5a870}[data-theme=pink] button:hover{background:#ead5e0;border-color:#9f9988}
+[data-theme=pink] button.primary{background:#886575;border-color:#886575;color:#fff7fa}[data-theme=pink] button.primary:hover{background:#795666}
+[data-theme=pink] #demo,[data-theme=pink] .date,[data-theme=pink] .tag,[data-theme=pink] .course .code{background:#ead2de;color:#765a6a}
+[data-theme=pink] .hero{background-color:#9d947b;background-blend-mode:normal}
+[data-theme=pink] .hero:before{background:linear-gradient(90deg,rgba(49,43,21,.56),rgba(49,43,21,.12) 65%,transparent 90%)}
+[data-theme=pink] .hero h2{color:#f3f0e6}[data-theme=pink] .hero .row button{background:#efeadd25;border-color:#efeadd70;color:#f5f2e9}[data-theme=pink] .hero .row button.primary{background:#e3dfd4;border-color:#e3dfd4;color:#4c473a}
+[data-theme=pink] .stats,[data-theme=pink] .panel,[data-theme=pink] .course{background:#fff1ce35;border-color:#948d794d;box-shadow:inset 0 1px 0 #f0ece080,0 3px 9px #45403108}
+[data-theme=pink] .stats strong{color:#544e3f}[data-theme=pink] .stats small,[data-theme=pink] .stats .muted,[data-theme=pink] .hint,[data-theme=pink] .muted,[data-theme=pink] .empty,[data-theme=pink] .source-note,[data-theme=pink] .footer-note,[data-theme=pink] .list-row small,[data-theme=pink] .chapter,[data-theme=pink] .home-footer,[data-theme=pink] .composer-footer small{color:#887681}
+[data-theme=pink] .panel h2:before{color:#908873}[data-theme=pink] .empty strong{color:#615c4d}[data-theme=pink] .list-row{border-color:#b5af9f60}
+[data-theme=pink] .search,[data-theme=pink] input,[data-theme=pink] textarea,[data-theme=pink] .settings input[type=text],[data-theme=pink] .settings input[type=password],[data-theme=pink] .settings select{background:#faf0f4;border-color:#bcb7a9;color:#51404b}
+[data-theme=pink] .settings label{color:#5b5648}[data-theme=pink] .consent,[data-theme=pink] .file{background:#f0dfe8}
+[data-theme=pink] .board-lane,[data-theme=pink] .board-lane:nth-child(2){background:#c4bead29;border-color:#948d794d}[data-theme=pink] .board-lane .list-row{background:#e8e5db}
+[data-theme=pink] .bubble{background:#f7e8ef;border-color:#c6c0b1}[data-theme=pink] .bubble.user{background:#ecd1df;border-color:#b6b0a1}[data-theme=pink] .bubble .speaker,[data-theme=pink] .trace,[data-theme=pink] .bubble a{color:#69624f}
+[data-theme=pink] .composer{background-color:#f8eaf0;border-color:#a69f8d}[data-theme=pink] .composer textarea{background:transparent}[data-theme=pink] .prompts button{background:#f5e6ed;border-color:#c0baab}
+[data-theme=pink] input:focus,[data-theme=pink] textarea:focus{border-color:#8a826c;box-shadow:0 0 0 3px #ada58e20}[data-theme=pink] button:focus-visible{outline-color:#8a826c}[data-theme=pink] .check{accent-color:#886575}
+[data-theme=pink] .theme-choice,[data-theme=pink] .pet-choice{background:#fff2f655}[data-theme=pink] .theme-choice[aria-pressed=true],[data-theme=pink] .pet-choice[aria-pressed=true]{border-color:#9c7187;box-shadow:0 0 0 1px #9c7187}
+[data-theme=pink] #page-flora{filter:sepia(.45) hue-rotate(280deg) saturate(.55);opacity:.14}
+[data-theme=pink] nav button{background:transparent;border:0}[data-theme=pink] nav button.active{background:#e8cbd8}[data-theme=pink] nav button:hover{background:#eedbe4}.pet-choice img{object-fit:contain;height:84px}
+.theme-swatch.pink{background:#eac4d6}

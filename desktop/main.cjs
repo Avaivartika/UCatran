@@ -42,7 +42,8 @@ function syncPet(){
  pet.on('closed',()=>{petDrag=null;clearTimeout(positionTimer);if(petWin===pet)petWin=null});
  pet.loadFile(path.join(root,'renderer/pet.html'));
 }
-function setAppearance(patch){state.appearance=updateAppearance(state.appearance,patch);save();syncPet();emit({type:'appearance',appearance:state.appearance});return state.appearance}
+function syncWindowTheme(){if(process.platform==='win32'&&win&&!win.isDestroyed()){const colors={green:['#f1f1e7','#293b29'],yellow:['#ebdfc4','#454238'],pink:['#efdee5','#493d45']}[state.appearance.theme];win.setTitleBarOverlay({color:colors[0],symbolColor:colors[1]})}}
+function setAppearance(patch){state.appearance=updateAppearance(state.appearance,patch);save();syncWindowTheme();syncPet();emit({type:'appearance',appearance:state.appearance});return state.appearance}
 
 function pythonPath(){const base=app.isPackaged?process.resourcesPath:root;return {base,python:pythonExecutable(base)}}
 function stopWorker(){if(worker){if(process.platform==='win32'&&worker.pid)spawn('taskkill',['/pid',String(worker.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'}).on('error',()=>{});else worker.kill();}worker=null;for(const p of pending.values()){clearTimeout(p.timer);p.reject(Error('连接器任务已停止'))}pending.clear()}
@@ -167,6 +168,7 @@ app.whenReady().then(()=>{
  app.setAboutPanelOptions({applicationName:'UCatran · 猫然',applicationVersion:app.getVersion(),copyright:'Catwarrior · Futuoran'});
  Menu.setApplicationMenu(Menu.buildFromTemplate([{label:'UCatran',submenu:[{role:'about',label:'关于 UCatran'},{type:'separator'},...(process.platform==='darwin'?[{role:'hide',label:'隐藏 UCatran'},{role:'hideOthers'},{role:'unhide'}]:[]),{type:'separator'},{role:'quit',label:'退出 UCatran'}]},{role:'editMenu'},{role:'viewMenu'},{role:'windowMenu'}]));
  win=new BrowserWindow({width:1280,height:850,minWidth:800,minHeight:600,title:'UCatran',backgroundColor:'#f4f6f8',...windowChrome(),icon:brandIcon,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+ syncWindowTheme();
  if(process.platform==='win32'&&app.isPackaged){
   win.setAppDetails({appId:windowsAppId,appIconPath:process.execPath,relaunchCommand:`"${process.execPath}"`,relaunchDisplayName:'UCatran · 猫然'});
  }

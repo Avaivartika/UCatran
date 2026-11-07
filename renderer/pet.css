@@ -4,3 +4,5 @@
 @media(prefers-reduced-motion:reduce){#pet-image{animation:none!important}}
 /* Direct manipulation and quiet controls, with irregular finite motions in JS. */
 #pet-image,body.busy #pet-image,#character.happy #pet-image{animation:none;transform-origin:50% 82%}#character{touch-action:none;cursor:grab;outline-offset:0}body.dragging #character{cursor:grabbing}.pet-toolbar{justify-content:flex-end}.pet-toolbar #menu{margin-right:auto;width:34px}#status{opacity:0;transition:opacity .2s}body:hover #status,body:focus-within #status,body.busy #status,body.emoting #status{opacity:1}#pet-choice{visibility:hidden;opacity:0}body.menu-open #pet-choice{visibility:visible;opacity:1}body.menu-open .pet-toolbar{opacity:1}body.dragging .pet-toolbar,body.dragging #status{opacity:0}body[data-theme=yellow] #status,body[data-theme=yellow] select{background:#f5e9cfe8}
+
+[data-theme=pink]{color:#765b6b}[data-theme=pink] #status,[data-theme=pink] .handle,[data-theme=pink] select,[data-theme=pink] .pet-toolbar button{background:#faeaf2ed;border-color:#cfacbe80}

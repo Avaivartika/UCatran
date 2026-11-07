@@ -37,8 +37,8 @@ the static page-background placement, five-minute refresh, and surrounding inter
 
 Character artwork is separate from the application source-code licenses. Images are displayed from original official artwork without redrawing. SVG files wrap the original PNG bytes and select the official sprite viewport; source URLs, viewport coordinates and hashes are recorded in `renderer/assets/pets/sources.json`.
 
-- Hello Kitty and Cinnamoroll: © SANRIO. Sources: https://www.sanrio.co.jp/characters/hellokitty/ and https://www.sanrio.co.jp/characters/cinnamon/
-- Chiikawa, Hachiware, Usagi and Momonga: © ナガノ / ちいかわ製作委員会. Source: https://www.anime-chiikawa.jp/chara.html
+- Hello Kitty, Cinnamoroll, My Melody and Pompompurin: © SANRIO. Sources: https://www.sanrio.co.jp/characters/hellokitty/ and https://www.sanrio.co.jp/characters/cinnamon/
+- Chiikawa, Hachiware, Usagi, Momonga and Goblin: © ナガノ / ちいかわ製作委員会. Sources: https://www.anime-chiikawa.jp/chara.html and https://chiikawamarket.jp/collections/goblin
 
 These character assets are not covered by the MIT licenses of the app's software dependencies.
 

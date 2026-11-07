@@ -29,6 +29,8 @@ jobs:
       - run: npm ci
       - run: python scripts/setup_connector.py
       - run: npm test
+      - name: Test Moodle pagination and library indexing
+        run: python -c "import sys, unittest; sys.path[:0] = ['vendor/moodle-mcp', 'runtime/site']; result = unittest.TextTestRunner().run(unittest.defaultTestLoader.discover('tests', pattern='test_*.py')); sys.exit(not result.wasSuccessful())"
       - run: npm run package:${{ matrix.target }}
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'

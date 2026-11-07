@@ -1,4 +1,4 @@
-const names={kitty:'Kitty',cinnamoroll:'玉桂狗',usagi:'乌撒奇',chiikawa:'吉伊',hachiware:'小八',momonga:'飞鼠'};
+const names={kitty:'Kitty',cinnamoroll:'玉桂狗',usagi:'乌撒奇',chiikawa:'吉伊',hachiware:'小八',momonga:'飞鼠',mymelody:'美乐蒂（淡粉）',pompompurin:'布丁狗',goblin:'哥布林'};
 const image=document.querySelector('#pet-image'),choice=document.querySelector('#pet-choice'),character=document.querySelector('#character'),status=document.querySelector('#status');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');let current,reset,idleTimer,motion,drag=null,raf=0,lastDrag=0,lastAttention=Date.now();
 const random=(a,b)=>a+Math.random()*(b-a);

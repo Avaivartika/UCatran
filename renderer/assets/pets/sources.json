@@ -64,5 +64,38 @@
     ],
     "sha256": "856b8b0e181c4a1c2a826816ed0b19eaad271fb580e76c5b21273885ec0ff07e",
     "credit": "© ナガノ / ちいかわ製作委員会"
+  },
+  "mymelody": {
+    "source": "https://www.sanrio.co.jp/wp-content/uploads/2022/06/list-mymelody.png",
+    "viewport": [
+      0,
+      0,
+      560,
+      560
+    ],
+    "sha256": "6c53bd64e8f601c0709c69daee863f282eaa763affa2f4f96ce77b5aa2b0b41c",
+    "credit": "© SANRIO"
+  },
+  "pompompurin": {
+    "source": "https://www.sanrio.co.jp/wp-content/uploads/2022/06/list-pompompurin.png",
+    "viewport": [
+      0,
+      0,
+      560,
+      560
+    ],
+    "sha256": "88c5a9f17886159de250607cb9cb5ca7dcee436dfb2789c3f0a19e434c7b7de1",
+    "credit": "© SANRIO"
+  },
+  "goblin": {
+    "source": "https://chiikawamarket.jp/cdn/shop/collections/15goburin.png?v=1766470815",
+    "viewport": [
+      25,
+      68,
+      350,
+      264
+    ],
+    "sha256": "6c9c6fbbfc22cbc88c694154d8e999913bbbdefa5eef541e4b8ee4f69da364d4",
+    "credit": "© nagano / chiikawa committee"
   }
 }
