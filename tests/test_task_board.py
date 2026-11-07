@@ -47,6 +47,27 @@ class TaskBoardTests(unittest.TestCase):
             self.assertFalse(next(c for c in data['coverage'] if c['courseId']==2)['ok'])
             self.assertTrue(next(t for t in data['tasks'] if t['name']=='Undated choice')['stale'])
 
+    def test_maintenance_opening_reminders_and_tracked_readings_are_not_deadlines(self):
+        with tempfile.TemporaryDirectory() as temp:
+            moodle, sections = self.moodle(temp)
+            modules = sections[1][0]['modules']
+            modules.append({'id':13,'instance':73,'modname':'resource','name':'Lecture slides','completion':1})
+            events = moodle.upcoming.return_value
+            for event_id, name, kind, instance, event_type in [
+                (101,'Site maintenance','',None,'site'),
+                (102,'Reading reminder','resource',73,'expectcompletionon'),
+                (103,'Quiz opens','quiz',71,'open'),
+            ]:
+                events.append({'id':event_id,'name':name,'modulename':kind,'instance':instance,
+                               'eventtype':event_type,'timestart':2000000000,'course':{'id':1}})
+            tasks = {item['name']:item for item in scan_tasks(moodle)['tasks']}
+            self.assertEqual(tasks['Site maintenance']['category'], 'calendar')
+            self.assertEqual(tasks['Lecture slides']['category'], 'reference')
+            self.assertIsNone(tasks['Lecture slides']['timestamp'])
+            self.assertEqual(tasks['Undated quiz']['category'], 'action')
+            self.assertIsNone(tasks['Undated quiz']['timestamp'])
+            self.assertEqual(tasks['Coursework']['category'], 'deadline')
+
     def test_bundle_and_model_context_include_requirements_selected_sources_not_tokens(self):
         with tempfile.TemporaryDirectory() as temp:
             m,_=self.moodle(temp);scan_tasks(m);details=task_details(m,'cm:1:10')

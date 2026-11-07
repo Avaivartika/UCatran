@@ -1,11 +1,32 @@
-const taskDetailsCache=new Map(),taskCardStates=new Map();let activeTaskWork=null,taskBoardSearch='',taskBoardCourse='',taskBoardFilter='all';
+const taskDetailsCache=new Map(),taskCardStates=new Map();let activeTaskWork=null,taskBoardSearch='',taskBoardCourse='',taskBoardFilter='upcoming';
 const taskTypeNames={...activityNames,coursework:'课程考核',calendar:'日历事项',questionnaire:'问卷',survey:'调查',scorm:'学习单元',hvp:'互动学习',h5pactivity:'互动学习',scheduler:'预约活动',checklist:'学习清单',data:'资料活动',wiki:'协作活动'};
 async function getTaskDetails(id){if(!taskDetailsCache.has(id))taskDetailsCache.set(id,api('taskDetails',{id}).catch(error=>{taskDetailsCache.delete(id);throw error}));return taskDetailsCache.get(id)}
+function isCourseDeadline(task){
+ return task.category==='deadline';
+}
+function isUpcomingDeadline(task, now=Date.now()/1000){
+ return isCourseDeadline(task)&&task.timestamp>=now&&!task.completed;
+}
 function taskNote(task){
  const card=el('article','task-note'),image=el('div','task-note-image'),body=el('div','task-note-body');image.setAttribute('aria-label',task.course+'课程图片');card.append(image,body);const course=(state.cache.courses?.data||[]).find(c=>String(c.id)===String(task.courseId));
  const meta=el('div','task-note-meta');meta.append(el('span','task-course',task.course),el('span','task-kind',taskTypeNames[task.type]||'课程活动'));body.append(meta,el('h2','task-name',task.name));
- const summary=el('p','task-description',task.description?task.description.replace(/\s+/g,' ').slice(0,220):'尚未提供任务简介，展开查看原始说明与课程资料。');body.append(summary);
- const dateRow=el('div','task-date-row'),due=el('strong','task-due',task.timestamp?date(task.timestamp):'未提供截止日期');if(task.timestamp&&task.timestamp*1000<Date.now()&&!task.completed)due.classList.add('task-past-due');dateRow.append(due,el('span','task-status',task.completed?'课程标记已完成':task.completionKnown?'课程标记未完成':'提交状态未核实'));if(task.stale)dateRow.append(el('span','task-stale','缓存任务 · 本次未完整读取'));body.append(dateRow);
+ const excerpts=(task.briefEvidence||[]).flatMap(source=>source.lines.map(line=>({...line,source:source.name})));
+ const mainExcerpt=excerpts.find(line=>/word limit|word count|字数|\bsubmit\b/i.test(line.text))||excerpts[0];
+ const original=(task.description||'').replace(/\s+/g,' ').trim();
+ if(mainExcerpt){
+  body.append(el('p','task-description',mainExcerpt.text),el('p','hint task-evidence-source',mainExcerpt.source+(mainExcerpt.page?' · 第 '+mainExcerpt.page+' 页':'')));
+ }else if(original){
+  const brief=original.length>240?original.slice(0,237).replace(/\s+\S*$/,'')+'…':original;
+  body.append(el('p','task-description',brief));
+ }
+ if(task.section)body.append(el('p','hint task-evidence-source','课程章节 · '+task.section));
+ const dateRow=el('div','task-date-row');
+ const due=el('strong','task-due',task.timestamp?(task.dateLabel||'截止时间')+' · '+date(task.timestamp):'日期待确认');
+ if(task.timestamp&&task.timestamp*1000<Date.now()&&!task.completed)due.classList.add('task-past-due');
+ dateRow.append(due);
+ if(task.completed)dateRow.append(el('span','task-status','课程标记已完成'));
+ if(task.stale)dateRow.append(el('span','task-stale','缓存任务 · 本次未完整读取'));
+ body.append(dateRow);
  const actions=el('div','row task-actions'),details=el('details','task-details'),detailLabel=el('summary','','任务要求与资料'),detailBody=el('div','task-detail-content'),status=el('p','task-work-status');status.setAttribute('role','status');details.append(detailLabel,detailBody);card.append(details,status);
  const explain=btn('✦ 生成任务讲解',()=>generate(),'small task-explain'),exportButton=btn('导出任务资料 ZIP',()=>exportBundle(),'small'),stop=btn('停止',()=>api('cancelTask',{id:task.id}),'ghost small');stop.hidden=true;
  actions.append(explain,exportButton,stop);if(task.url)actions.append(btn('原任务 ↗',()=>api('openLink',{url:task.url}),'ghost small'));body.append(actions);
@@ -17,7 +38,18 @@ function taskNote(task){
   if(loaded)return loaded;if(loading)return getTaskDetails(task.id);loading=true;detailBody.replaceChildren(el('p','hint','正在读取原始任务要求和资料关联…'));
   try{
    loaded=await getTaskDetails(task.id);selected=new Set(loaded.materials.filter(f=>f.recommended).map(f=>f.id));detailBody.replaceChildren();
-   const source=el('div','task-original');source.append(el('h3','','Moodle 原始任务要求'),courseRichContent(loaded.content,loaded.description||'接口未提供完整说明，请核对任务原页面。'));for(const warning of loaded.warnings||[])source.append(el('p','task-error',warning));detailBody.append(source);if(loaded.schedule?.length){const times=el('section','task-times');times.append(el('h3','','活动相关时间'));for(const item of loaded.schedule)times.append(el('p','',`${item.name} · ${date(item.timestamp)} · ${item.source}`));detailBody.append(times)}
+   const source=el('div','task-original');source.append(el('h3','','Moodle 原始任务要求'),courseRichContent(loaded.content,loaded.description||'接口未提供完整说明，请核对任务原页面。'));for(const warning of loaded.warnings||[])source.append(el('p','task-error',warning));detailBody.append(source);
+   if(loaded.briefEvidence?.length){
+    const evidence=el('section','task-brief-evidence');
+    evidence.append(el('h3','','作业说明摘录'));
+    for(const file of loaded.briefEvidence){
+     evidence.append(el('h4','',file.name));
+     for(const line of file.lines)evidence.append(el('p','',(line.page?'第 '+line.page+' 页 · ':'')+line.text));
+     if(!file.lines.length)evidence.append(el('p','hint',file.unread?'暂未读取正文，原文件仍列在课程资料中。':'请打开原文件核对具体要求。'));
+    }
+    detailBody.append(evidence);
+   }
+   if(loaded.schedule?.length){const times=el('section','task-times');times.append(el('h3','','活动相关时间'));for(const item of loaded.schedule)times.append(el('p','',`${item.name} · ${date(item.timestamp)} · ${item.source}`));detailBody.append(times)}
    if(brief&&brief.revision!==loaded.revision)aiMeta.textContent+=' · 任务内容已更新，请重新生成';
    const heading=el('div','task-material-heading');heading.append(el('h3','',`课程资料 · ${loaded.materials.length}`),el('p','hint','默认勾选任务附件、原文引用与同章节考核资料，可补充选择；讲解和 ZIP 使用同一资料范围。'));
    const list=el('div','task-materials'),find=el('input','search');find.placeholder='筛选资料名称、章节或活动';find.setAttribute('aria-label','筛选任务资料');detailBody.append(heading,find,list);
@@ -36,12 +68,54 @@ function taskNote(task){
 }
 function deadlines(){
  if(activeTaskWork){const banner=el('div','task-active-banner');banner.append(el('span','','任务正在后台处理'),btn('停止当前任务',()=>activeTaskWork?api('cancelTask',{id:activeTaskWork}):notice('任务已结束'),'small'));page.append(banner)}
- const tasks=state.cache.deadlines?.data||[],coverage=state.cache.taskCoverage,summary=el('div','task-board-intro');summary.append(el('h2','','课程任务便签'),el('p','',`${tasks.length} 项课程活动与任务 · ${tasks.filter(t=>!t.timestamp).length} 项未提供截止日期`));page.append(summary,source('deadlines'));
- const audit=el('details','task-coverage'),auditSummary=el('summary','','任务发现范围与读取情况');audit.append(auditSummary);if(coverage){const cs=coverage.data||[];audit.append(el('p','',`已扫描 ${cs.filter(c=>c.ok).length} / ${cs.length} 门课程的可见活动，并合并日历和活动专用接口。`));for(const c of cs)audit.append(el('p',c.ok?'':'task-error',`${c.ok?'✓':'!'} ${c.course} · ${c.ok?c.tasks+' 项活动':'本次读取失败，保留旧记录'}${c.warnings?.length?' · '+c.warnings.join('；'):''}`));for(const warning of coverage.warnings||[])audit.append(el('p','task-error',warning));if(cs.some(c=>!c.ok||c.warnings?.length)||coverage.warnings?.length)audit.open=true}else audit.append(el('p','','请同步课程任务，查看逐课扫描结果。'));page.append(audit);
+ const records=state.cache.deadlines?.data||[],coverage=state.cache.taskCoverage;
+ const tasks=records.filter(task=>isCourseDeadline(task)||task.category==='action');
+ const upcoming=tasks.filter(task=>isUpcomingDeadline(task)).length;
+ const summary=el('div','task-board-intro');
+ summary.append(el('h2','','课程截止日期'),el('p','',upcoming+' 项即将截止'));
+ page.append(summary,source('deadlines'));
+ const audit=el('details','task-coverage');
+ const courses=coverage?.data||[];
+ const issues=(coverage?.warnings||[]).length+courses.reduce((n,c)=>n+(c.ok?0:1)+(c.warnings?.length||0),0);
+ audit.append(el('summary','',courses.length?'同步范围 · '+courses.filter(c=>c.ok).length+' / '+courses.length+' 门课程'+(issues?' · '+issues+' 项读取提示':''):'同步范围'));
+ if(courses.length){
+  audit.append(el('p','',`已从课程活动、完成状态和日历核对。识别出 ${tasks.length} 项截止事项或明确活动。讲义、公告和阅读资料可在「我的课程」查看。`));
+  for(const c of courses) audit.append(el('p',c.ok?'':'task-error',c.course+' · '+(c.ok?'已扫描':'读取失败，保留此前记录')+(c.warnings?.length?' · '+c.warnings.join('；'):'')));
+  for(const warning of coverage.warnings||[])audit.append(el('p','task-error',warning));
+ }
+ page.append(audit);
+ if(!records.some(task=>task.category)){
+  page.append(empty('请重新同步课程任务','点击右上角「同步 Moodle」，按任务证据整理已缓存的课程记录。'));
+  return;
+ }
  const controls=el('div','task-board-controls'),search=el('input','search'),course=el('select'),filter=el('select');search.placeholder='搜索任务、课程或任务说明';search.value=taskBoardSearch;search.setAttribute('aria-label','搜索课程任务');course.setAttribute('aria-label','任务所属课程');filter.setAttribute('aria-label','任务范围');const all=el('option','','全部课程');all.value='';course.append(all);for(const name of [...new Set(tasks.map(t=>t.course))].sort()){const o=el('option','',name);o.value=name;course.append(o)}course.value=taskBoardCourse;
- for(const [value,label]of [['all','全部任务与活动'],['upcoming','未来有截止日期'],['undated','无截止日期'],['past','日期已过 · 未核实提交'],['completed','课程标记已完成'],['unknown','完成状态未核实']]){const o=el('option','',label);o.value=value;filter.append(o)}filter.value=taskBoardFilter;controls.append(search,course,filter);page.append(controls,el('p','task-board-note','时间以伦敦时区显示。日期已过不代表未交；无日期活动也会保留。AI 讲解只在点击按钮后发送所选任务资料到当前模型。'));
- const list=el('div','task-note-list'),count=el('p','hint');page.append(count,list);let shown=30;
- function draw(){taskBoardSearch=search.value;taskBoardCourse=course.value;taskBoardFilter=filter.value;const q=search.value.toLowerCase(),now=Date.now()/1000;const matches=tasks.filter(t=>(!course.value||t.course===course.value)&&(!q||(t.name+' '+t.course+' '+t.description).toLowerCase().includes(q))&&(filter.value==='all'||filter.value==='upcoming'&&t.timestamp>=now||filter.value==='undated'&&!t.timestamp||filter.value==='past'&&t.timestamp&&t.timestamp<now&&!t.completed||filter.value==='completed'&&t.completed||filter.value==='unknown'&&!t.completionKnown));const rank=t=>t.completed?3:t.timestamp>=now?0:!t.timestamp?1:t.type==='calendar'?4:2;matches.sort((a,b)=>rank(a)-rank(b)||(rank(a)===2||rank(a)===4?(b.timestamp||0)-(a.timestamp||0):(a.timestamp||Infinity)-(b.timestamp||Infinity))||a.course.localeCompare(b.course,'zh-CN'));list.replaceChildren();count.textContent=`当前显示 ${Math.min(shown,matches.length)} / ${matches.length} 项`;for(const task of matches.slice(0,shown))list.append(taskNote(task));if(!matches.length)list.append(empty('没有匹配任务','可更换课程或任务范围；同步失败请查看上方读取情况。'));if(matches.length>shown)list.append(btn(`继续显示任务（余 ${matches.length-shown} 项）`,()=>{shown+=30;draw()},'ghost'));}
+ for(const [value,label] of [['upcoming','即将截止'],['history','历史截止'],['action','待确认日期'],['completed','已完成']]){
+  const option=el('option','',label);option.value=value;filter.append(option);
+ }
+ filter.value=taskBoardFilter;
+ controls.append(search,course,filter);page.append(controls,el('p','task-board-note','伦敦时间 · 历史截止与完成状态分别显示'));
+ const list=el('div','task-note-list'),count=el('p','hint');page.append(count,list);
+ let shown=30;
+ function draw(){
+  taskBoardSearch=search.value;taskBoardCourse=course.value;taskBoardFilter=filter.value;
+  const query=search.value.trim().toLowerCase(),now=Date.now()/1000;
+  const matches=tasks.filter(task=>{
+   if(course.value&&task.course!==course.value)return false;
+   const searchable=[task.name,task.course,task.description,task.section,...(task.briefEvidence||[]).flatMap(source=>source.lines.map(line=>line.text))].join(' ').toLowerCase();
+   if(query&&!searchable.includes(query))return false;
+   if(filter.value==='completed')return task.completed;
+   if(filter.value==='action')return task.category==='action'&&!task.completed;
+   if(filter.value==='history')return isCourseDeadline(task)&&task.timestamp<now;
+   return isUpcomingDeadline(task,now);
+  });
+  const direction=filter.value==='history'?-1:1;
+  matches.sort((a,b)=>direction*((a.timestamp||0)-(b.timestamp||0))||a.name.localeCompare(b.name));
+  list.replaceChildren();
+  count.textContent=matches.length+' 项'+(matches.length>shown?' · 显示前 '+shown+' 项':'');
+  for(const task of matches.slice(0,shown))list.append(taskNote(task));
+  if(!matches.length)list.append(empty('当前筛选下没有任务','可切换课程、任务范围或搜索词。'));
+  if(matches.length>shown)list.append(btn('继续显示任务',()=>{shown+=30;draw()},'ghost'));
+ }
  search.oninput=()=>{shown=30;draw()};course.onchange=()=>{shown=30;draw()};filter.onchange=()=>{shown=30;draw()};draw();
 }
 window.study.onEvent(event=>{

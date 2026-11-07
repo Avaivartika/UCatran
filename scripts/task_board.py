@@ -1,5 +1,6 @@
 """Multi-source read-only task inventory, evidenced explanations and portable task bundles."""
 import hashlib, json, re, time, zipfile, uuid
+from html import unescape
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime, timezone
@@ -8,6 +9,76 @@ from course_catalog import public_url, rich_content, course_image_url, safe_comp
 
 TASK_TYPES = {'assign','coursework','quiz','choice','feedback','questionnaire','survey','workshop','lesson','scorm','attendance','scheduler','hvp','h5pactivity','lti','forum','checklist','data','wiki'}
 ASSESSMENT_WORDS = re.compile(r'assess|assignment|coursework|brief|rubric|criteria|marking|submission|作业|任务|评分|考核', re.I)
+ASSESSMENTS = {'assign', 'coursework', 'quiz', 'workshop'}
+ACTION_TYPES = ASSESSMENTS | {'choice', 'scheduler', 'checklist'}
+DEADLINE_EVENTS = {'due', 'close', 'closesubmission', 'closeassessment', 'submissiondue', 'assessmentdue'}
+DEADLINE_LABEL = re.compile(r'\b(?:due|closes?|closed|deadline)\b|截止', re.I)
+BRIEF_FILE = re.compile(r'\b(?:brief|handout|rubric|specification|requirements)\b|作业要求|评分标准', re.I)
+DELIVERABLE = re.compile(r'\b(?:you (?:must|are required to|will need to|will (?:characterise|analy[sz]e|design))|task is to|submit (?:a|an|one|your)|word (?:limit|count)|\d[\d,]*[- ]words?\b|deliverables?|submission requirements|invite you to do)\b|字数|提交要求', re.I)
+
+
+def brief_filename(filename):
+    return re.sub(r'(?<=[a-z])(?=[A-Z])', ' ', str(filename or '').replace('_', ' '))
+
+
+def classify_task(task, has_deadline=False):
+    """Classify the source separately from its action and deadline evidence."""
+    kind = task['type']
+    if has_deadline and kind not in {'calendar', 'label', 'resource', 'folder', 'page', 'url', 'book'}:
+        return 'deadline', '提交截止' if kind in {'assign', 'coursework'} else '活动关闭'
+    if kind == 'calendar':
+        return 'calendar', '日历事项'
+    if kind in ACTION_TYPES:
+        return 'action', '考核或练习' if kind in ASSESSMENTS else '选择或预约'
+    return 'reference', '课程参考'
+
+
+def brief_evidence(moodle, section, module, attachments, assessment_count, coursework_count):
+    """Read an explicitly linked or uniquely attributable assessment brief."""
+    candidates = list(attachments) + module.get('contents', [])
+    for sibling in section.get('modules', []):
+        if sibling.get('uservisible') is False or sibling['id'] == module['id']:
+            continue
+        for item in sibling.get('contents', []):
+            name = brief_filename(item.get('filename'))
+            unique_coursework = module.get('modname') == 'coursework' and coursework_count == 1
+            named_brief = bool(re.search(r'\b(?:coursework|course)\s+brief\b', name, re.I))
+            if BRIEF_FILE.search(name) and (assessment_count == 1 or unique_coursework and named_brief):
+                candidates.append(item)
+    candidates = {item.get('fileurl'):item for item in candidates
+                  if item.get('fileurl') and BRIEF_FILE.search(brief_filename(item.get('filename')))}
+    if not candidates:
+        return []
+    evidence = []
+    ranked = sorted(candidates.values(), key=lambda item: not re.search(r'\b(?:brief|handout)\b', brief_filename(item.get('filename')), re.I))
+    for item in ranked[:2]:
+        name = str(item.get('filename') or '')
+        if Path(name).suffix.lower() not in {'.pdf', '.docx', '.txt', '.md'}:
+            continue
+        url = public_url(item.get('fileurl'), moodle.settings.base_url)
+        parsed, origin = urlparse(url), urlparse(moodle.settings.base_url)
+        if parsed.scheme != 'https' or parsed.netloc != origin.netloc or not parsed.path.startswith(('/pluginfile.php/', '/webservice/pluginfile.php/')):
+            continue
+        material = {'id':hashlib.sha256(url.encode()).hexdigest()[:20], 'name':name, 'url':url,
+                    'size':item.get('filesize') or 0, 'modified':item.get('timemodified', 0)}
+        source = {'name':name, 'url':url, 'lines':[]}
+        try:
+            file = cached_material(moodle, material, 8 * 1024 * 1024)
+            for page, content in extract_task_file(file):
+                if page > 10:
+                    break
+                for line in content.splitlines():
+                    line = ' '.join(line.split())
+                    if 16 <= len(line) <= 320 and DELIVERABLE.search(line):
+                        source['lines'].append({'page':page, 'text':line})
+                    if len(source['lines']) >= 5:
+                        break
+                if len(source['lines']) >= 5:
+                    break
+        except Exception:
+            source['unread'] = True
+        evidence.append(source)
+    return evidence
 
 def plain(html): return BeautifulSoup(html or '', 'html.parser').get_text('\n', strip=True)
 def atomic_json(path, data):
@@ -59,7 +130,8 @@ def scan_tasks(m, progress=lambda **_:None):
     for event in events:
         cid=(event.get('course') or {}).get('id');query=parse_qs(urlparse(event.get('url','')).query)
         cmid=query.get('id',[None])[0]
-        if cid and cmid: by_module.setdefault((str(cid),str(cmid)),[]).append(event)
+        if cid and cmid and re.fullmatch(r'/mod/[^/]+/view\.php',urlparse(event.get('url','')).path):
+            by_module.setdefault((str(cid),str(cmid)),[]).append(event)
         if cid and event.get('modulename') and event.get('instance'): by_instance.setdefault((str(cid),event['modulename'],str(event['instance'])),[]).append(event)
     for index,course in enumerate(courses):
         cid=course['id'];warnings=list(source_warnings.get(str(cid),[]));count=0
@@ -86,6 +158,10 @@ def scan_tasks(m, progress=lambda **_:None):
         if recovered: sections=list(sections)+[{'id':'completion','name':'完成状态来源补充','modules':recovered}]
         for section in sections:
             if section.get('uservisible') is False: continue
+            assessment_count = sum(x.get('uservisible') is not False and x.get('modname') in ASSESSMENTS
+                                   for x in section.get('modules', []))
+            coursework_count = sum(x.get('uservisible') is not False and x.get('modname') == 'coursework'
+                                   for x in section.get('modules', []))
             for module in section.get('modules',[]):
                 if module.get('uservisible') is False: continue
                 mid=module['id'];kind=module.get('modname','');linked=list({e['id']:e for e in by_module.get((str(cid),str(mid)),[])+by_instance.get((str(cid),kind,str(module.get('instance'))),[])}.values())
@@ -94,11 +170,11 @@ def scan_tasks(m, progress=lambda **_:None):
                 supplement=supplements.get(kind,{}).get(str(module.get('instance')),{})
                 htmls=[e.get('description','') for e in linked]+[module.get('description',''),supplement.get('intro',''),supplement.get('activity','')]
                 htmls=list(dict.fromkeys(h for h in htmls if h))
-                timestamps=[e.get('timesort') or e.get('timestart') for e in linked if e.get('eventtype') not in ('open','start')]
+                timestamps=[e.get('timesort') or e.get('timestart') for e in linked if e.get('eventtype') in DEADLINE_EVENTS]
                 native_due=supplement.get('duedate') if kind=='assign' else supplement.get('timeclose') if kind in ('quiz','choice') else None
                 if native_due: timestamps.append(native_due)
                 for date in module.get('dates',[]):
-                    if re.search(r'due|clos|deadline|截止|结束',str(date.get('label','')),re.I) and date.get('timestamp'): timestamps.append(date['timestamp'])
+                    if DEADLINE_LABEL.search(str(date.get('label',''))) and date.get('timestamp'): timestamps.append(date['timestamp'])
                 timestamps=[int(t) for t in timestamps if t]
                 upcoming_times=[t for t in timestamps if t>=time.time()]
                 displayed_due=min(upcoming_times) if upcoming_times else max(timestamps) if timestamps else None
@@ -107,6 +183,10 @@ def scan_tasks(m, progress=lambda **_:None):
                     if date.get('timestamp'):schedule.append({'name':date.get('label','活动时间'),'timestamp':date['timestamp'],'source':'课程活动'})
                 key=f'cm:{cid}:{mid}';text='\n\n'.join(plain(h) for h in htmls)
                 tasks[key]={'id':key,'courseId':cid,'course':course['fullname'],'image':course_image_url(course,m.settings.base_url),'moduleId':mid,'instance':module.get('instance'),'type':kind,'name':module.get('name') or linked[0]['name'],'section':section.get('name',''),'timestamp':displayed_due,'schedule':schedule,'description':text,'url':public_url(module.get('url') or (linked[0].get('url') if linked else ''),m.settings.base_url),'eventIds':[e['id'] for e in linked],'sources':['课程活动']+(['日历'] if linked else [])+(['活动专用接口'] if supplement else []),'completed':bool(status.get('state')),'completionKnown':bool(status.get('tracking') or status.get('state')),'_html':htmls,'_attachments':supplement.get('introattachments',[])+supplement.get('introfiles',[]),'updatedAt':time.time()}
+                task = tasks[key]
+                task['category'], task['dateLabel'] = classify_task(task, bool(displayed_due))
+                if kind in ASSESSMENTS:
+                    task['briefEvidence'] = brief_evidence(m, section, module, task['_attachments'], assessment_count, coursework_count)
                 count+=1
         coverage.append({'courseId':cid,'course':course['fullname'],'ok':True,'tasks':count,'warnings':warnings})
     course_map={str(c['id']):c for c in courses}
@@ -118,11 +198,14 @@ def scan_tasks(m, progress=lambda **_:None):
             if key in tasks: continue
             htmls=[entry.get('intro',''),entry.get('activity','')];due=entry.get('duedate') if kind=='assign' else entry.get('timeclose')
             tasks[key]={'id':key,'courseId':cid,'course':course['fullname'],'image':course_image_url(course,m.settings.base_url),'moduleId':mid,'instance':entry['id'],'type':kind,'name':entry.get('name') or '课程活动','section':'活动接口补充','timestamp':due or None,'description':'\n\n'.join(plain(h) for h in htmls if h),'url':m.settings.base_url+(f'/mod/{kind}/view.php?id={mid}' if mid else f'/course/view.php?id={cid}'),'eventIds':[],'sources':['活动专用接口'],'completed':False,'completionKnown':False,'_html':htmls,'_attachments':entry.get('introattachments',[])+entry.get('introfiles',[]),'updatedAt':time.time()}
+            tasks[key]['category'], tasks[key]['dateLabel'] = classify_task(tasks[key], bool(due))
     matched={eid for task in tasks.values() for eid in task['eventIds']}
     for event in events:
         if event['id'] in matched: continue
         course=event.get('course') or {};key='event:'+str(event['id'])
         tasks[key]={'id':key,'courseId':course.get('id'),'course':course.get('fullname','Moodle 日历'),'image':public_url(course.get('courseimage'),m.settings.base_url) if course.get('courseimage') else '', 'moduleId':None,'instance':event.get('instance'),'type':event.get('modulename') or 'calendar','name':event.get('name','日历事项'),'section':'日历事项','timestamp':event.get('timesort') or event.get('timestart'),'description':plain(event.get('description')),'url':public_url(event.get('url'),m.settings.base_url),'eventIds':[event['id']],'sources':['日历'],'completed':False,'completionKnown':False,'_html':[event.get('description','')],'_attachments':[],'updatedAt':time.time()}
+        confirmed = event.get('eventtype') in DEADLINE_EVENTS and bool(event.get('modulename'))
+        tasks[key]['category'], tasks[key]['dateLabel'] = classify_task(tasks[key], confirmed) if confirmed else ('calendar', '日历事项')
     # Retain prior known tasks for failed courses rather than treating failures as empty courses.
     failed={str(c['courseId']) for c in coverage if not c['ok']}
     try:
@@ -130,6 +213,9 @@ def scan_tasks(m, progress=lambda **_:None):
         for task in old.get('tasks',[]):
             if (str(task.get('courseId')) in failed or (global_warnings and task['id'].startswith('event:'))) and task['id'] not in tasks: tasks[task['id']]={**task,'stale':True}
     except (OSError,ValueError): pass
+    for task in tasks.values():
+        task['name'] = unescape(task['name']).strip()
+        task['section'] = unescape(task.get('section') or '').strip()
     result={'tasks':list(tasks.values()),'coverage':coverage,'warnings':global_warnings,'scannedAt':time.time(),'calendarEvents':len(events)}
     atomic_json(inventory_path(m),result);progress(phase='scan',done=len(courses),total=len(courses),message='课程活动扫描完成')
     return {**result,'tasks':[public_task(t) for t in result['tasks']]}
