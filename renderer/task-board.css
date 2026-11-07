@@ -2,3 +2,5 @@
 [data-theme=pink] .task-note{background:#fff5f8}[data-theme=green] .task-note{background:#fbfbe9}[data-theme=yellow] .task-note{background:#fff7e3}
 @media(max-width:1000px){.task-note{grid-template-columns:140px minmax(0,1fr)}.task-note-body{padding:19px}.task-note .task-name{font-size:18px}.task-detail-content,.task-ai{padding:18px}.task-board-controls select{max-width:100%}}
 @media(max-width:760px){.task-note{grid-template-columns:minmax(0,1fr)}.task-note-image{height:130px;min-height:130px}.task-note-body{padding:18px}.task-board-controls{align-items:stretch;flex-direction:column}.task-board-controls .search{min-width:0}.task-note .task-actions button{padding:9px 10px}.task-note-meta{gap:7px}}
+.task-ai>summary{cursor:pointer;font-size:16px;font-weight:600}
+.task-ai>summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px}

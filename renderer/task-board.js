@@ -30,7 +30,15 @@ function taskNote(task){
  const actions=el('div','row task-actions'),details=el('details','task-details'),detailLabel=el('summary','','任务要求与资料'),detailBody=el('div','task-detail-content'),status=el('p','task-work-status');status.setAttribute('role','status');details.append(detailLabel,detailBody);card.append(details,status);
  const explain=btn('✦ 生成任务讲解',()=>generate(),'small task-explain'),exportButton=btn('导出任务资料 ZIP',()=>exportBundle(),'small'),stop=btn('停止',()=>api('cancelTask',{id:task.id}),'ghost small');stop.hidden=true;
  actions.append(explain,exportButton,stop);if(task.url)actions.append(btn('原任务 ↗',()=>api('openLink',{url:task.url}),'ghost small'));body.append(actions);
- const ai=el('section','task-ai'),aiTitle=el('h3','','AI 任务讲解'),aiMeta=el('p','hint'),aiText=el('div','markdown'),aiSources=el('p','task-ai-sources');ai.append(aiTitle,aiMeta,aiText,aiSources);card.append(ai);ai.hidden=true;
+ const ai=el('details','task-ai');
+ const aiToggle=el('summary','','展开 AI 任务讲解');
+ const aiMeta=el('p','hint'),aiText=el('div','markdown'),aiSources=el('p','task-ai-sources');
+ ai.append(aiToggle,aiMeta,aiText,aiSources);
+ ai.addEventListener('toggle',()=>{
+  aiToggle.textContent=ai.open?'收起 AI 任务讲解':'展开 AI 任务讲解';
+ });
+ card.append(ai);
+ ai.hidden=true;
  let loaded=null,selected=new Set(),loading=false,brief=state.taskBriefs?.[task.id];
  function drawBrief(value){if(!value?.text)return;brief=value;ai.hidden=false;aiMeta.textContent=`${value.model} · ${new Date(value.at).toLocaleString('zh-CN')} · 根据原文与资料生成，请核对来源`;aiText.replaceChildren();richText(aiText,value.text);aiSources.textContent='原始任务要求：R1。'+(value.sources?.length?'读取资料：'+value.sources.map(s=>s.source+' '+s.name).join('；'):'仅依据任务原文，未读取附件。')+(value.warnings?.length?'\n读取限制：'+value.warnings.join('；'):'');explain.textContent='✦ 重新生成讲解'}
  drawBrief(brief);
@@ -62,7 +70,7 @@ function taskNote(task){
   }catch(error){detailBody.replaceChildren(el('p','task-error',error.message),btn('重试读取',()=>ensureDetails(),'small'));throw error}finally{loading=false}
  }
  function busy(value){explain.disabled=value;exportButton.disabled=value;stop.hidden=!value;card.setAttribute('aria-busy',String(value));if(value){activeTaskWork=task.id;taskCardStates.set(task.id,{status,ai,aiText,aiMeta})}else{if(activeTaskWork===task.id)activeTaskWork=null;taskCardStates.delete(task.id)}}
- async function generate(){details.open=true;await ensureDetails();busy(true);ai.hidden=false;aiMeta.textContent=`使用 ${state.config.model||'当前模型'}，正在读取任务与所选资料…`;aiText.replaceChildren();aiSources.textContent='';status.textContent='正在准备任务讲解…';try{const result=await api('summarizeTask',{id:task.id,materialIds:[...selected]});state.taskBriefs||={};state.taskBriefs[task.id]=result;drawBrief(result);status.textContent='任务讲解已生成并保存在本机。'}catch(error){status.textContent=error.message;aiMeta.textContent='本次讲解未完成；已输出的内容仅供参考。';throw error}finally{busy(false)}}
+ async function generate(){details.open=true;await ensureDetails();busy(true);ai.hidden=false;ai.open=true;aiMeta.textContent=`使用 ${state.config.model||'当前模型'}，正在读取任务与所选资料…`;aiText.replaceChildren();aiSources.textContent='';status.textContent='正在准备任务讲解…';try{const result=await api('summarizeTask',{id:task.id,materialIds:[...selected]});state.taskBriefs||={};state.taskBriefs[task.id]=result;drawBrief(result);status.textContent='任务讲解已生成并保存在本机。'}catch(error){status.textContent=error.message;aiMeta.textContent='本次讲解未完成；已输出的内容仅供参考。';throw error}finally{busy(false)}}
  async function exportBundle(){await ensureDetails();busy(true);status.textContent='正在准备任务资料包…';try{const result=await api('exportTask',{id:task.id,materialIds:[...selected]});status.textContent=result.canceled?'已取消导出':`ZIP 已导出，包含任务要求及 ${result.included} 份资料。`+(result.unavailable?.length?`有 ${result.unavailable.length} 份未能获取，详见包内资料清单。`:'');}finally{busy(false)}}
  details.ontoggle=()=>{if(details.open&&!loaded&&!loading)ensureDetails().catch(e=>notice(e.message))};requestAnimationFrame(()=>courseCover(image,task.image||course?.image,task.course+'课程图片'));return card;
 }
